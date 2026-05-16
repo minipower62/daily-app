@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Morning Routine</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#FFF8EE;--card:#FFF;--text:#2D2010;--muted:#9A7E5A;--border:rgba(160,120,60,0.15);
+  --green:#16A34A;--amber:#D97706;--red:#DC2626;--blue:#2563EB;--purple:#7C3AED;--accent:#FF6B35;
+}
+html,body{font-family:'Nunito',sans-serif;background:var(--bg);overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+.screen{display:none;flex-direction:column;min-height:100vh}
+.screen.active{display:flex}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 0}
+.topbar-title{font-size:17px;font-weight:900;color:var(--text)}
+.icon-btn{background:none;border:none;cursor:pointer;font-size:18px;padding:6px;border-radius:10px;line-height:1;touch-action:manipulation}
+.icon-btn:active{background:rgba(0,0,0,0.08)}
+
+/* WEATHER */
+.weather-strip{margin:10px 14px 0;background:linear-gradient(135deg,#0EA5E9,#38BDF8);border-radius:18px;padding:11px 14px;display:flex;align-items:center;gap:10px}
+.wx-now{display:flex;align-items:center;gap:8px;flex:1}
+.wx-icon{font-size:26px;line-height:1}
+.wx-temp{font-size:20px;font-weight:900;color:#fff;line-height:1}
+.wx-cond{font-size:10px;font-weight:700;color:rgba(255,255,255,.8);line-height:1.3}
+.wx-name{font-size:9px;font-weight:700;color:rgba(255,255,255,.6);margin-top:1px}
+.wx-days{display:flex;gap:5px}
+.wx-day{background:rgba(255,255,255,.18);border-radius:10px;padding:4px 6px;text-align:center;min-width:40px}
+.wx-day-name{font-size:8px;font-weight:800;color:rgba(255,255,255,.7);text-transform:uppercase}
+.wx-day-icon{font-size:13px;line-height:1.4}
+.wx-day-hi{font-size:10px;font-weight:800;color:#fff}
+.wx-day-rain{font-size:8px;font-weight:700;color:rgba(255,255,255,.7)}
+
+/* MUSIC */
+.music-bar{margin:8px 14px 0;background:var(--card);border-radius:16px;border:1.5px solid var(--border);padding:8px 11px;display:flex;align-items:center;gap:7px}
+.music-label{font-size:11px;font-weight:800;color:var(--muted);min-width:30px}
+.music-genres{display:flex;gap:5px;flex:1}
+.genre-btn{flex:1;padding:6px 2px;border-radius:9px;border:1.5px solid var(--border);background:var(--bg);font-family:'Nunito',sans-serif;font-size:10px;font-weight:800;cursor:pointer;color:var(--text);transition:background .15s,border-color .15s,opacity .2s;text-align:center;line-height:1.3;touch-action:manipulation}
+.genre-btn.playing{background:#F3E8FF;border-color:var(--purple);color:var(--purple)}
+.genre-btn.cooling{opacity:.4;cursor:not-allowed;pointer-events:none}
+.music-note{font-size:15px;animation:bouncenote .6s ease-in-out infinite alternate;display:inline-block}
+@keyframes bouncenote{0%{transform:translateY(0) rotate(-8deg)}100%{transform:translateY(-3px) rotate(8deg)}}
+.cooldown-bar-wrap{width:28px;height:4px;background:rgba(0,0,0,.08);border-radius:99px;overflow:hidden;display:none}
+.cooldown-bar-fill{height:100%;background:var(--purple);border-radius:99px;transition:width .1s linear}
+
+/* COUNTDOWN */
+.countdown-strip{margin:8px 14px 0;background:var(--text);border-radius:18px;padding:11px 15px;display:flex;align-items:center;gap:12px}
+.countdown-time{font-size:26px;font-weight:900;color:#fff;letter-spacing:-1px;line-height:1}
+.countdown-right{flex:1}
+.countdown-label{font-size:9px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px}
+.status-pill{display:inline-block;font-size:10px;font-weight:800;padding:3px 9px;border-radius:20px;margin-top:3px}
+.s-ahead{background:#DCFCE7;color:#14532D}
+.s-ontime{background:#DBEAFE;color:#1E3A8A}
+.s-behind{background:#FEE2E2;color:#7F1D1D}
+.progress-mini{height:5px;background:rgba(255,255,255,.15);border-radius:99px;margin-top:7px;overflow:hidden}
+.progress-mini-fill{height:100%;background:linear-gradient(90deg,#4ADE80,#22D3EE);border-radius:99px;transition:width .5s}
+
+/* STAGE */
+.stage{margin:8px 14px 0;background:linear-gradient(180deg,#E0F2FE 0%,#BAE6FD 55%,#FDE68A 100%);border-radius:20px;height:150px;position:relative;overflow:hidden;flex-shrink:0}
+.stage-ground{position:absolute;bottom:0;left:0;right:0;height:38px;background:#A3D977;border-radius:0 0 20px 20px}
+.stage-ground::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:#7EC850}
+.stage-sun{position:absolute;top:10px;right:18px;font-size:26px}
+.stage-cloud{position:absolute;top:12px;left:20px;font-size:16px;opacity:.85}
+.stage-cloud2{position:absolute;top:20px;left:56px;font-size:12px;opacity:.6}
+.stage-house{position:absolute;bottom:34px;right:12px;font-size:32px}
+.char-wrap{position:absolute;bottom:34px;transition:left .7s cubic-bezier(.34,1.2,.64,1)}
+.char-svg{width:60px;height:auto}
+.task-bubble{position:absolute;top:7px;left:50%;transform:translateX(-50%);background:white;border-radius:11px;padding:4px 10px;font-size:10px;font-weight:800;color:var(--text);box-shadow:0 2px 10px rgba(0,0,0,.12);opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.task-bubble.show{opacity:1}
+
+/* TILES */
+.tiles-section{padding:8px 14px;flex:1}
+.tiles-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.tile{background:var(--card);border-radius:13px;padding:10px 6px 9px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;border:2px solid var(--border);transition:transform .15s,box-shadow .15s,border-color .2s,background .2s;position:relative;overflow:hidden;min-height:84px;justify-content:center;touch-action:manipulation}
+.tile:active{transform:scale(.93)}
+.tile.done{border-color:#BBF7D0;background:#F0FDF4}
+.tile.active-task{border-color:#FDE68A;background:#FFFBEB;box-shadow:0 0 0 3px rgba(253,230,138,.5)}
+.tile-emoji{font-size:28px;line-height:1;transition:transform .2s}
+.tile.done .tile-emoji{transform:scale(1.08)}
+.tile-label{font-size:10px;font-weight:800;color:var(--text);text-align:center;line-height:1.2}
+.tile.done .tile-label{color:#166534}
+.tile-est{font-size:9px;font-weight:600;color:var(--muted)}
+.tile-check{position:absolute;top:5px;right:5px;width:17px;height:17px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;opacity:0;transform:scale(0);transition:opacity .2s,transform .3s cubic-bezier(.34,1.56,.64,1);font-size:10px;color:white;font-weight:900}
+.tile.done .tile-check{opacity:1;transform:scale(1)}
+
+/* BOTTOM BAR */
+.bottom-bar{padding:9px 14px 14px;display:flex;align-items:center;gap:8px;background:var(--card);border-top:1.5px solid var(--border)}
+.points-box{display:flex;align-items:center;gap:5px;flex:1}
+.points-box span{font-size:12px;font-weight:800}
+.streak-pill{background:#FEF3C7;color:#92400E;font-size:10px;font-weight:800;padding:3px 8px;border-radius:20px}
+.btn-customize{background:linear-gradient(135deg,#7C3AED,#EC4899);color:white;border:none;border-radius:11px;padding:8px 12px;font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;cursor:pointer;opacity:.4;pointer-events:none;transition:opacity .3s;touch-action:manipulation}
+.btn-customize.unlocked{opacity:1;pointer-events:all}
+
+/* ALL DONE */
+.all-done{background:linear-gradient(135deg,#7C3AED,#EC4899);border-radius:15px;padding:13px;text-align:center;color:white;display:none;margin:0 14px 7px}
+.all-done.show{display:block}
+.all-done h3{font-size:17px;font-weight:900;margin:3px 0 3px}
+.all-done p{font-size:11px;font-weight:600;opacity:.85}
+
+/* REWARD MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity .3s}
+.overlay.show{opacity:1;pointer-events:all}
+.modal{background:white;border-radius:22px;padding:20px 16px 16px;width:290px;text-align:center;transform:scale(.85);transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
+.overlay.show .modal{transform:scale(1)}
+.modal-big{font-size:48px;margin-bottom:6px}
+.modal-title{font-size:18px;font-weight:900;color:var(--text);margin-bottom:3px}
+.modal-sub{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:12px}
+.video-box{background:#0F172A;border-radius:12px;height:110px;display:flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:12px;position:relative;overflow:hidden}
+.video-emoji{font-size:38px}
+.video-caption{font-size:10px;color:rgba(255,255,255,.5);font-weight:700;margin-top:3px}
+.vbar{position:absolute;bottom:0;left:0;right:0;height:4px;background:rgba(255,255,255,.15)}
+.vfill{height:100%;background:var(--accent);width:0%;transition:width .1s linear}
+.btn-primary{width:100%;padding:12px;background:var(--purple);color:white;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;touch-action:manipulation}
+
+/* CUSTOMIZE CHAR */
+.cust-scroll{flex:1;overflow-y:auto;padding:14px;-webkit-overflow-scrolling:touch}
+.cust-preview{background:linear-gradient(180deg,#E0F2FE,#BAE6FD 60%,#FDE68A 100%);border-radius:18px;height:140px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:16px;overflow:hidden;position:relative}
+.cust-ground{position:absolute;bottom:0;left:0;right:0;height:30px;background:#A3D977}
+.cust-char{position:absolute;bottom:24px}
+.cust-section{margin-bottom:16px}
+.cust-label{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px}
+.opt-row{display:flex;gap:7px;flex-wrap:wrap}
+.opt-btn{padding:7px 11px;border-radius:10px;border:2px solid var(--border);background:var(--card);font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;cursor:pointer;color:var(--text);transition:border-color .15s,background .15s;touch-action:manipulation}
+.opt-btn.sel{border-color:var(--purple);background:#F3E8FF;color:var(--purple)}
+.color-dot{width:30px;height:30px;border-radius:50%;border:3px solid transparent;cursor:pointer;transition:border-color .15s;touch-action:manipulation}
+.color-dot.sel{border-color:var(--purple)}
+
+/* PARENT */
+.parent-scroll{flex:1;overflow-y:auto;padding:14px;-webkit-overflow-scrolling:touch}
+.parent-card{background:var(--card);border-radius:14px;border:1.5px solid var(--border);padding:13px 14px;margin-bottom:10px}
+.parent-card-title{font-size:13px;font-weight:800;color:var(--text);margin-bottom:11px}
+.field-row{display:flex;align-items:center;margin-bottom:9px;gap:8px}
+.field-label{font-size:12px;font-weight:700;color:var(--muted);flex:1}
+.field-input{font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;border:1.5px solid var(--border);border-radius:9px;padding:6px 9px;background:var(--bg);color:var(--text);width:90px;text-align:center}
+.stat-row{display:flex;gap:7px;margin-bottom:10px}
+.stat-box{flex:1;background:var(--bg);border-radius:11px;padding:9px;text-align:center}
+.stat-num{font-size:22px;font-weight:900;color:var(--purple)}
+.stat-lbl{font-size:10px;font-weight:700;color:var(--muted)}
+.save-btn{width:100%;padding:12px;background:var(--green);color:white;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;margin-top:3px;touch-action:manipulation}
+
+/* TILE EDITOR */
+.tile-editor-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.tile-editor-row{
+  display:flex;align-items:center;gap:8px;background:var(--bg);
+  border-radius:12px;padding:8px 10px;border:1.5px solid var(--border)
+}
+.tile-editor-row.dragging{opacity:.4}
+.te-drag{font-size:16px;color:var(--muted);cursor:grab;padding:0 2px;touch-action:none}
+.te-emoji-btn{
+  font-size:24px;width:44px;height:44px;border-radius:10px;border:1.5px solid var(--border);
+  background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;touch-action:manipulation
+}
+.te-name-input{
+  flex:1;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;
+  border:1.5px solid var(--border);border-radius:9px;padding:7px 9px;
+  background:var(--card);color:var(--text);min-width:0
+}
+.te-mins{display:flex;align-items:center;gap:4px}
+.te-mins-btn{width:24px;height:24px;border-radius:7px;border:1.5px solid var(--border);background:var(--card);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text);font-family:'Nunito',sans-serif;line-height:1;touch-action:manipulation}
+.te-mins-val{font-size:12px;font-weight:800;color:var(--text);width:22px;text-align:center}
+.te-del{font-size:16px;cursor:pointer;color:#EF4444;padding:4px;touch-action:manipulation}
+.te-add-btn{
+  width:100%;padding:10px;background:var(--card);color:var(--purple);border:2px dashed var(--purple);
+  border-radius:12px;font-size:13px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;
+  margin-bottom:10px;touch-action:manipulation
+}
+
+/* EMOJI PICKER MODAL */
+.emoji-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;z-index:200;opacity:0;pointer-events:none;transition:opacity .25s}
+.emoji-overlay.show{opacity:1;pointer-events:all}
+.emoji-sheet{background:white;border-radius:22px 22px 0 0;padding:16px 14px 30px;width:100%;max-width:480px;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.emoji-overlay.show .emoji-sheet{transform:translateY(0)}
+.emoji-sheet-title{font-size:14px;font-weight:900;color:var(--text);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.emoji-search{width:100%;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;border:1.5px solid var(--border);border-radius:10px;padding:8px 12px;background:var(--bg);color:var(--text);margin-bottom:10px}
+.emoji-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;max-height:220px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.emoji-opt{font-size:26px;text-align:center;padding:6px 0;cursor:pointer;border-radius:8px;touch-action:manipulation}
+.emoji-opt:active{background:var(--bg)}
+.emoji-close{font-size:20px;cursor:pointer;touch-action:manipulation}
+
+/* CONFETTI */
+.confetti-wrap{position:fixed;inset:0;pointer-events:none;z-index:300;overflow:hidden}
+.cp{position:absolute;border-radius:2px;animation:cffall 1.8s ease-in forwards}
+@keyframes cffall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}80%{opacity:1}100%{transform:translateY(700px) rotate(720deg);opacity:0}}
+</style>
+</head>
+<body>
+
+<!-- ══ MAIN ══ -->
+<div class="screen active" id="screen-main">
+  <div class="topbar">
+    <div style="font-size:18px;font-weight:900;color:var(--text)">Good morning! 🌤️</div>
+    <button class="icon-btn" onclick="showScreen('screen-parent')">⚙️</button>
+  </div>
+
+  <div class="weather-strip">
+    <div class="wx-now">
+      <div class="wx-icon" id="wx-icon">🌥️</div>
+      <div>
+        <div class="wx-temp" id="wx-temp">19°C</div>
+        <div class="wx-cond" id="wx-cond">Cloudy</div>
+        <div class="wx-name">Melbourne</div>
+      </div>
+    </div>
+    <div class="wx-days" id="wx-days"></div>
+  </div>
+
+  <div class="music-bar">
+    <span class="music-label" id="music-label">🎵</span>
+    <div class="music-genres">
+      <button class="genre-btn" data-genre="zen"       id="gbtn-zen"       onclick="toggleMusic('zen')">🧘 Zen</button>
+      <button class="genre-btn" data-genre="pop"       id="gbtn-pop"       onclick="toggleMusic('pop')">🎤 Pop</button>
+      <button class="genre-btn" data-genre="rock"      id="gbtn-rock"      onclick="toggleMusic('rock')">🎸 Rock</button>
+      <button class="genre-btn" data-genre="classical" id="gbtn-classical" onclick="toggleMusic('classical')">🎻 Classical</button>
+    </div>
+    <div class="cooldown-bar-wrap" id="cd-bar-wrap">
+      <div class="cooldown-bar-fill" id="cd-bar-fill" style="width:100%"></div>
+    </div>
+  </div>
+
+  <div class="countdown-strip">
+    <div class="countdown-time" id="cd-time">--:--</div>
+    <div class="countdown-right">
+      <div class="countdown-label">until you leave</div>
+      <div class="status-pill s-ontime" id="cd-status">On track ✨</div>
+      <div class="progress-mini"><div class="progress-mini-fill" id="prog-mini" style="width:0%"></div></div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,.5)">STARS TODAY</div>
+      <div style="font-size:20px;font-weight:900;color:#FDE68A" id="star-display">⭐ 0</div>
+    </div>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="stage-cloud">☁️</div>
+    <div class="stage-cloud2">☁️</div>
+    <div class="stage-sun">☀️</div>
+    <div class="stage-house">🏠</div>
+    <div class="stage-ground"></div>
+    <div class="task-bubble" id="task-bubble"></div>
+    <div class="char-wrap" id="char-wrap" style="left:6px">
+      <svg class="char-svg" viewBox="0 0 72 120" id="char-main"></svg>
+    </div>
+  </div>
+
+  <div class="all-done" id="all-done">
+    <div style="font-size:30px">🎉</div>
+    <h3>You're all ready!</h3>
+    <p>Amazing — have an incredible day!</p>
+  </div>
+
+  <div class="tiles-section">
+    <div class="tiles-grid" id="tiles-grid"></div>
+  </div>
+
+  <div class="bottom-bar">
+    <div class="points-box">
+      <span>⭐</span>
+      <span id="total-stars">0 stars</span>
+      <span class="streak-pill">🔥 3 days</span>
+    </div>
+    <button class="btn-customize" id="btn-cust" onclick="showScreen('screen-customize')">✨ Customise</button>
+  </div>
+</div>
+
+<!-- ══ CUSTOMIZE CHARACTER ══ -->
+<div class="screen" id="screen-customize">
+  <div class="topbar">
+    <button class="icon-btn" onclick="showScreen('screen-main')">← Back</button>
+    <div class="topbar-title">Your Character</div>
+    <div style="width:30px"></div>
+  </div>
+  <div class="cust-scroll">
+    <div class="cust-preview">
+      <div class="cust-ground"></div>
+      <div class="cust-char"><svg width="72" height="120" viewBox="0 0 72 120" id="char-preview"></svg></div>
+    </div>
+    <div class="cust-section">
+      <div class="cust-label">Hair colour</div>
+      <div class="opt-row">
+        <div class="color-dot sel" style="background:#4A2C0A" data-key="hairColor" data-val="brown"  onclick="setPref(this)"></div>
+        <div class="color-dot"     style="background:#F5C842" data-key="hairColor" data-val="blonde" onclick="setPref(this)"></div>
+        <div class="color-dot"     style="background:#1a1a1a" data-key="hairColor" data-val="black"  onclick="setPref(this)"></div>
+        <div class="color-dot"     style="background:#C0392B" data-key="hairColor" data-val="red"    onclick="setPref(this)"></div>
+        <div class="color-dot"     style="background:#E91E8C" data-key="hairColor" data-val="pink"   onclick="setPref(this)"></div>
+      </div>
+    </div>
+    <div class="cust-section">
+      <div class="cust-label">Hair style</div>
+      <div class="opt-row">
+        <button class="opt-btn sel" data-key="hairStyle" data-val="long"   onclick="setPref(this)">Long</button>
+        <button class="opt-btn"     data-key="hairStyle" data-val="short"  onclick="setPref(this)">Short</button>
+        <button class="opt-btn"     data-key="hairStyle" data-val="bun"    onclick="setPref(this)">Bun</button>
+        <button class="opt-btn"     data-key="hairStyle" data-val="braids" onclick="setPref(this)">Braids</button>
+        <button class="opt-btn"     data-key="hairStyle" data-val="curly"  onclick="setPref(this)">Curly</button>
+      </div>
+    </div>
+    <div class="cust-section">
+      <div class="cust-label">Eye colour</div>
+      <div class="opt-row">
+        <div class="color-dot sel" style="background:#4A90D9" data-key="eyeColor" data-val="blue"   onclick="setPref(this)"></div>
+        <div class="color-dot"     style="background:#27AE60" data-key="eyeColor" data-val="green"  onclick="setPref(this)"></div>
+        <div class="color-dot"     style="background:#7D5A3C" data-key="eyeColor" data-val="brown"  onclick="setPref(this)"></div>
+        <div class="color-dot"     style="background:#8E44AD" data-key="eyeColor" data-val="violet" onclick="setPref(this)"></div>
+      </div>
+    </div>
+    <div class="cust-section">
+      <div class="cust-label">Outfit</div>
+      <div class="opt-row">
+        <button class="opt-btn sel" data-key="outfit" data-val="uniform" onclick="setPref(this)">Uniform</button>
+        <button class="opt-btn"     data-key="outfit" data-val="casual"  onclick="setPref(this)">Casual</button>
+        <button class="opt-btn"     data-key="outfit" data-val="sporty"  onclick="setPref(this)">Sporty</button>
+        <button class="opt-btn"     data-key="outfit" data-val="cozy"    onclick="setPref(this)">Cozy</button>
+      </div>
+    </div>
+    <div class="cust-section">
+      <div class="cust-label">Earrings</div>
+      <div class="opt-row">
+        <button class="opt-btn"     data-key="earrings" data-val="none"   onclick="setPref(this)">None</button>
+        <button class="opt-btn sel" data-key="earrings" data-val="stars"  onclick="setPref(this)">⭐ Stars</button>
+        <button class="opt-btn"     data-key="earrings" data-val="hearts" onclick="setPref(this)">❤️ Hearts</button>
+      </div>
+    </div>
+    <div class="cust-section">
+      <div class="cust-label">Glasses</div>
+      <div class="opt-row">
+        <button class="opt-btn"     data-key="glasses" data-val="none"       onclick="setPref(this)">None</button>
+        <button class="opt-btn sel" data-key="glasses" data-val="sunglasses" onclick="setPref(this)">🕶️ Sunnies</button>
+        <button class="opt-btn"     data-key="glasses" data-val="reading"    onclick="setPref(this)">👓 Readers</button>
+      </div>
+    </div>
+    <div style="padding-bottom:20px"></div>
+  </div>
+</div>
+
+<!-- ══ PARENT DASHBOARD ══ -->
+<div class="screen" id="screen-parent">
+  <div class="topbar">
+    <button class="icon-btn" onclick="showScreen('screen-main')">← Back</button>
+    <div class="topbar-title">Parent Dashboard</div>
+    <div style="width:30px"></div>
+  </div>
+  <div class="parent-scroll">
+    <div class="stat-row">
+      <div class="stat-box"><div class="stat-num" id="stat-done">0</div><div class="stat-lbl">Done today</div></div>
+      <div class="stat-box"><div class="stat-num">3🔥</div><div class="stat-lbl">Day streak</div></div>
+      <div class="stat-box"><div class="stat-num" id="stat-stars">0⭐</div><div class="stat-lbl">Stars earned</div></div>
+    </div>
+
+    <div class="parent-card">
+      <div class="parent-card-title">⏰ Schedule</div>
+      <div class="field-row">
+        <span class="field-label">Departure time</span>
+        <input class="field-input" type="time" id="dep-time-input" value="08:15">
+      </div>
+      <div class="field-row">
+        <span class="field-label">Child's name</span>
+        <input class="field-input" type="text" id="child-name-input" value="Lily" style="width:120px;text-align:left">
+      </div>
+    </div>
+
+    <div class="parent-card">
+      <div class="parent-card-title">🎯 Morning tasks — tap emoji to change, edit name &amp; time</div>
+      <div class="tile-editor-list" id="tile-editor-list"></div>
+      <button class="te-add-btn" onclick="addTask()">＋ Add a task</button>
+    </div>
+
+    <div class="parent-card">
+      <div class="parent-card-title">📺 Rewards &amp; music</div>
+      <div class="field-row">
+        <span class="field-label">Video reward length</span>
+        <select class="field-input" id="vid-length-sel" style="width:90px">
+          <option value="15">15 sec</option>
+          <option value="30" selected>30 sec</option>
+          <option value="60">60 sec</option>
+        </select>
+      </div>
+      <div class="field-row">
+        <span class="field-label">Music switch cooldown</span>
+        <select class="field-input" id="cooldown-sel" style="width:90px">
+          <option value="30">30 sec</option>
+          <option value="60" selected>1 min</option>
+          <option value="120">2 min</option>
+          <option value="300">5 min</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="save-btn" onclick="saveAll()">✅ Save settings</button>
+    <div style="height:24px"></div>
+  </div>
+</div>
+
+<!-- REWARD MODAL -->
+<div class="overlay" id="reward-overlay">
+  <div class="modal">
+    <div class="modal-big" id="r-emoji">🐱</div>
+    <div class="modal-title" id="r-title">Brilliant!</div>
+    <div class="modal-sub" id="r-sub">Here's your reward 🎬</div>
+    <div class="video-box">
+      <div class="video-emoji" id="r-cat">😸</div>
+      <div class="video-caption" id="r-caption">🎬 Cat video playing...</div>
+      <div class="vbar"><div class="vfill" id="vfill"></div></div>
+    </div>
+    <button class="btn-primary" onclick="closeReward()">Continue ✨</button>
+  </div>
+</div>
+
+<!-- EMOJI PICKER -->
+<div class="emoji-overlay" id="emoji-overlay">
+  <div class="emoji-sheet">
+    <div class="emoji-sheet-title">
+      <span>Pick an emoji</span>
+      <span class="emoji-close" onclick="closeEmojiPicker()">✕</span>
+    </div>
+    <input class="emoji-search" type="text" placeholder="Search..." id="emoji-search" oninput="filterEmoji()">
+    <div class="emoji-grid" id="emoji-grid"></div>
+  </div>
+</div>
+
+<div class="confetti-wrap" id="confetti"></div>
+
+<script>
+// ════════ EMOJI LIBRARY ════════
+const ALL_EMOJI = [
+  '🥣','🥞','🍳','🥐','🍞','🥛','🧃','🍎','🍌','🥑','🧆','🥪','🥗','🍱','🌯',
+  '💊','💉','🩺','🩹','🧴','🧹','🪥','🦷','🚿','🛁','🪞','👕','👗','👘','🧥',
+  '👟','👠','👡','👞','🥾','🧤','🧣','🎒','👜','💼','🎽','🩱','🧢','👒','🎓',
+  '💧','🚰','🧴','🫧','🧼','🪣','🫙','💦','☕','🍵','🥤','🧋',
+  '📚','✏️','📝','📖','🖊️','📐','📏','🔬','🎨','🖌️','🎭','🎪',
+  '🌟','⭐','✨','🎉','🎊','🏆','🥇','🎯','🎮','🕹️','🎲','🃏',
+  '🐱','🐶','🐰','🦊','🐼','🐨','🦁','🐯','🐸','🦋','🐝','🌸',
+  '🌈','☀️','🌤️','⛅','🌙','⚡','❄️','🌺','🌻','🌹','🍀','🌿',
+  '🏠','🏡','🚌','🚗','🚀','✈️','🎡','🎢','⛺','🏕️','🌄','🗺️',
+  '❤️','🧡','💛','💚','💙','💜','🖤','🤍','💕','💖','💗','💝',
+  '🙏','👍','👋','🤝','💪','🦾','🧠','👀','👁️','💫','🔥','⚡',
+];
+
+let emojiTargetIdx = null;
+
+function openEmojiPicker(idx) {
+  emojiTargetIdx = idx;
+  document.getElementById('emoji-search').value = '';
+  renderEmojiGrid(ALL_EMOJI);
+  document.getElementById('emoji-overlay').classList.add('show');
+}
+function closeEmojiPicker() {
+  document.getElementById('emoji-overlay').classList.remove('show');
+  emojiTargetIdx = null;
+}
+function filterEmoji() {
+  const q = document.getElementById('emoji-search').value.toLowerCase();
+  renderEmojiGrid(q ? ALL_EMOJI.filter(e => e.includes(q)) : ALL_EMOJI);
+}
+function renderEmojiGrid(list) {
+  const grid = document.getElementById('emoji-grid');
+  grid.innerHTML = '';
+  list.forEach(em => {
+    const el = document.createElement('div');
+    el.className = 'emoji-opt';
+    el.textContent = em;
+    el.onclick = () => selectEmoji(em);
+    grid.appendChild(el);
+  });
+}
+function selectEmoji(em) {
+  if (emojiTargetIdx === null) return;
+  tasks[emojiTargetIdx].emoji = em;
+  renderTileEditor();
+  closeEmojiPicker();
+}
+
+// ════════ STATE ════════
+const TASKS_DEF = [
+  {id:'breakfast',emoji:'🥣',label:'Breakfast',  mins:12},
+  {id:'medicine', emoji:'💊',label:'Medicine',   mins:1},
+  {id:'teeth',    emoji:'🦷',label:'Brush teeth',mins:3},
+  {id:'hair',     emoji:'💇',label:'Brush hair', mins:4},
+  {id:'dressed',  emoji:'👕',label:'Get dressed',mins:5},
+  {id:'shoes',    emoji:'👟',label:'Shoes on',   mins:2},
+  {id:'lunch',    emoji:'🥪',label:'Lunch in bag',mins:3},
+  {id:'water',    emoji:'💧',label:'Water bottle',mins:2},
+  {id:'bag',      emoji:'🎒',label:'Bag packed', mins:3},
+];
+
+let tasks      = JSON.parse(localStorage.getItem('mrTasks')||'null') || TASKS_DEF.map(t=>({...t}));
+let done       = new Set();
+let stars      = 0;
+let vidLen     = parseInt(localStorage.getItem('mrVidLen')||'30');
+let depTime    = localStorage.getItem('mrDep')||'08:15';
+let childName  = localStorage.getItem('mrName')||'Lily';
+let cooldownSecs = parseInt(localStorage.getItem('mrCooldown')||'60');
+
+let char = JSON.parse(localStorage.getItem('mrChar')||'null') || {
+  hairColor:'brown',hairStyle:'long',eyeColor:'blue',outfit:'uniform',earrings:'stars',glasses:'sunglasses'
+};
+
+// ════════ WEATHER ════════
+const WX = {
+  temp:19, cond:'Cloudy',
+  days:[
+    {name:'Sat',icon:'🌥️',hi:23,rain:10},
+    {name:'Sun',icon:'🌧️',hi:17,rain:77},
+    {name:'Mon',icon:'🌦️',hi:17,rain:35},
+    {name:'Tue',icon:'🌦️',hi:16,rain:35},
+    {name:'Wed',icon:'🌦️',hi:16,rain:25},
+  ]
+};
+function renderWeather(){
+  document.getElementById('wx-icon').textContent='🌥️';
+  document.getElementById('wx-temp').textContent=WX.temp+'°C';
+  document.getElementById('wx-cond').textContent=WX.cond;
+  const wrap=document.getElementById('wx-days'); wrap.innerHTML='';
+  WX.days.slice(0,4).forEach(d=>{
+    const el=document.createElement('div'); el.className='wx-day';
+    el.innerHTML=`<div class="wx-day-name">${d.name}</div><div class="wx-day-icon">${d.icon}</div><div class="wx-day-hi">${d.hi}°</div><div class="wx-day-rain">${d.rain}%💧</div>`;
+    wrap.appendChild(el);
+  });
+}
+
+// ════════ MUSIC ════════
+let audioCtx=null, musicNodes=[], currentGenre=null;
+let musicCoolingDown=false, cooldownInterval=null, cooldownRemain=0;
+
+const GENRES={
+  zen:{label:'🧘 Zen',make(ctx){
+    const m=ctx.createGain(); m.gain.setValueAtTime(0,ctx.currentTime); m.gain.linearRampToValueAtTime(.18,ctx.currentTime+2); m.connect(ctx.destination);
+    [[136,.5],[272,.25],[408,.12],[544,.06]].forEach(([f,g])=>{const o=ctx.createOscillator(),gn=ctx.createGain();o.type='sine';o.frequency.value=f;gn.gain.value=g;o.connect(gn);gn.connect(m);o.start();musicNodes.push(o,gn);});
+    musicNodes.push(m);
+  }},
+  pop:{label:'🎤 Pop',make(ctx){
+    const m=ctx.createGain(); m.gain.setValueAtTime(0,ctx.currentTime); m.gain.linearRampToValueAtTime(.14,ctx.currentTime+.3); m.connect(ctx.destination);
+    [261.6,329.6,392,523.2].forEach(f=>{const o=ctx.createOscillator(),gn=ctx.createGain(),lfo=ctx.createOscillator(),lfog=ctx.createGain();o.type='triangle';o.frequency.value=f;gn.gain.value=.25;lfo.frequency.value=5;lfog.gain.value=3;lfo.connect(lfog);lfog.connect(o.frequency);lfo.start();o.connect(gn);gn.connect(m);o.start();musicNodes.push(o,gn,lfo,lfog);});
+    musicNodes.push(m);
+  }},
+  rock:{label:'🎸 Rock',make(ctx){
+    const m=ctx.createGain(); m.gain.setValueAtTime(0,ctx.currentTime); m.gain.linearRampToValueAtTime(.12,ctx.currentTime+.2); m.connect(ctx.destination);
+    const dist=ctx.createWaveShaper(),curve=new Float32Array(256);
+    for(let i=0;i<256;i++){const x=i*2/256-1;curve[i]=x*(3+20*Math.abs(x))/(1+20*Math.abs(x)*3);}
+    dist.curve=curve; dist.connect(m);
+    [82.4,164.8,123.5,246.9].forEach(f=>{const o=ctx.createOscillator(),gn=ctx.createGain();o.type='sawtooth';o.frequency.value=f;gn.gain.value=.2;o.connect(gn);gn.connect(dist);o.start();musicNodes.push(o,gn);});
+    musicNodes.push(dist,m);
+  }},
+  classical:{label:'🎻 Classical',make(ctx){
+    const m=ctx.createGain(); m.gain.setValueAtTime(0,ctx.currentTime); m.gain.linearRampToValueAtTime(.15,ctx.currentTime+1.5); m.connect(ctx.destination);
+    [293.7,370,440,587.3].forEach((f,i)=>{const o=ctx.createOscillator(),gn=ctx.createGain(),lfo=ctx.createOscillator(),lfog=ctx.createGain();o.type='sine';o.frequency.value=f;gn.gain.value=.22;lfo.frequency.value=4.5+i*.3;lfog.gain.value=.04;lfo.connect(lfog);lfog.connect(gn.gain);lfo.start();gn.gain.setValueAtTime(0,ctx.currentTime);gn.gain.linearRampToValueAtTime(.22,ctx.currentTime+1.5+i*.2);o.connect(gn);gn.connect(m);o.start();musicNodes.push(o,gn,lfo,lfog);});
+    musicNodes.push(m);
+  }}
+};
+
+function stopMusic(fade){
+  if(!audioCtx||!musicNodes.length) return;
+  const t=audioCtx.currentTime;
+  musicNodes.forEach(n=>{
+    if(n.gain){try{n.gain.cancelScheduledValues(t);n.gain.setValueAtTime(n.gain.value,t);n.gain.linearRampToValueAtTime(0,t+(fade?.8:.05));}catch(e){}}
+    if(n.frequency){try{n.stop(t+(fade?.85:.1));}catch(e){}}
+  });
+  setTimeout(()=>{musicNodes=[];},900);
+}
+function startCooldown(){
+  musicCoolingDown=true; cooldownRemain=cooldownSecs;
+  const wrap=document.getElementById('cd-bar-wrap'),fill=document.getElementById('cd-bar-fill');
+  wrap.style.display='block'; fill.style.width='100%';
+  document.querySelectorAll('.genre-btn').forEach(b=>b.classList.add('cooling'));
+  clearInterval(cooldownInterval);
+  cooldownInterval=setInterval(()=>{
+    cooldownRemain--;
+    fill.style.width=(cooldownRemain/cooldownSecs*100)+'%';
+    if(cooldownRemain<=0){
+      clearInterval(cooldownInterval); musicCoolingDown=false; wrap.style.display='none';
+      document.querySelectorAll('.genre-btn').forEach(b=>b.classList.remove('cooling'));
+      updateMusicUI();
+    }
+  },1000);
+}
+function toggleMusic(genre){
+  if(musicCoolingDown) return;
+  if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==='suspended') audioCtx.resume();
+  if(currentGenre===genre){stopMusic(true);currentGenre=null;document.getElementById('music-label').innerHTML='🎵';updateMusicUI();startCooldown();return;}
+  stopMusic(false); currentGenre=genre; GENRES[genre].make(audioCtx);
+  document.getElementById('music-label').innerHTML='<span class="music-note">🎵</span>';
+  updateMusicUI(); startCooldown();
+}
+function updateMusicUI(){
+  Object.keys(GENRES).forEach(g=>{
+    const btn=document.getElementById('gbtn-'+g); if(!btn) return;
+    btn.classList.toggle('playing',g===currentGenre);
+    btn.textContent=GENRES[g].label+(g===currentGenre?' ◼':'');
+  });
+}
+
+// ════════ CHARACTER ════════
+const HAIR={
+  long:  'M18 18 Q18 2 36 2 Q54 2 54 18 L54 56 Q48 72 36 78 Q24 72 18 56 Z',
+  short: 'M18 18 Q18 2 36 2 Q54 2 54 18 L54 34 Q48 40 36 42 Q24 40 18 34 Z',
+  bun:   'M22 20 Q22 4 36 4 Q50 4 50 20 L50 34 Q44 42 36 44 Q28 42 22 34 Z M30 8 Q36 2 42 8 Q44 4 36 2 Q28 4 30 8 Z',
+  braids:'M18 18 Q18 2 36 2 Q54 2 54 18 L54 38 Q48 48 36 52 Q24 48 18 38 Z',
+  curly: 'M16 22 Q12 8 24 4 Q30 0 36 2 Q42 0 48 4 Q60 8 56 22 Q60 36 56 44 Q50 58 36 62 Q22 58 16 44 Q12 36 16 22 Z',
+};
+const HC={brown:'#4A2C0A',blonde:'#F5C842',black:'#1a1a1a',red:'#C0392B',pink:'#E91E8C'};
+const EC={blue:'#4A90D9',green:'#27AE60',brown:'#7D5A3C',violet:'#8E44AD'};
+const OC={uniform:'#1E3A8A',casual:'#E74C3C',sporty:'#16A34A',cozy:'#9333EA'};
+const OA={uniform:'#DBEAFE',casual:'#FEE2E2',sporty:'#DCFCE7',cozy:'#F3E8FF'};
+
+function buildChar(c){
+  const hc=HC[c.hairColor]||'#4A2C0A',ec=EC[c.eyeColor]||'#4A90D9';
+  const oc=OC[c.outfit]||'#1E3A8A',oa=OA[c.outfit]||'#DBEAFE';
+  const hp=HAIR[c.hairStyle]||HAIR.long;
+  const SK='#FDDBB4',SD='#F0B97A';
+  let ears='';
+  if(c.earrings==='stars') ears='<text x="13" y="52" font-size="7">⭐</text><text x="51" y="52" font-size="7">⭐</text>';
+  else if(c.earrings==='hearts') ears='<text x="13" y="52" font-size="7">❤️</text><text x="51" y="52" font-size="7">❤️</text>';
+  let glass='';
+  if(c.glasses==='sunglasses') glass=`<rect x="20" y="31" width="12" height="7" rx="3" fill="#111" opacity=".85"/><rect x="40" y="31" width="12" height="7" rx="3" fill="#111" opacity=".85"/><line x1="32" y1="34" x2="40" y2="34" stroke="#111" stroke-width="1.5"/>`;
+  else if(c.glasses==='reading') glass=`<rect x="20" y="31" width="12" height="8" rx="3" fill="none" stroke="#C0A060" stroke-width="1.5"/><rect x="40" y="31" width="12" height="8" rx="3" fill="none" stroke="#C0A060" stroke-width="1.5"/><line x1="32" y1="35" x2="40" y2="35" stroke="#C0A060" stroke-width="1.2"/>`;
+  let braids='';
+  if(c.hairStyle==='braids') braids=`<line x1="22" y1="50" x2="18" y2="80" stroke="${hc}" stroke-width="5" stroke-linecap="round"/><line x1="50" y1="50" x2="54" y2="80" stroke="${hc}" stroke-width="5" stroke-linecap="round"/>`;
+  const lower=(c.outfit==='casual'||c.outfit==='cozy')
+    ?`<path d="M26 88 L22 118 L32 118 L36 102 L40 118 L50 118 L46 88 Z" fill="${oc}"/>`
+    :`<rect x="26" y="88" width="9" height="27" rx="3" fill="${oc}"/><rect x="37" y="88" width="9" height="27" rx="3" fill="${oc}"/>`;
+  const stripe=c.outfit==='sporty'?`<line x1="30" y1="72" x2="28" y2="88" stroke="${oa}" stroke-width="2"/><line x1="42" y1="72" x2="44" y2="88" stroke="${oa}" stroke-width="2"/>`:'';
+  return `${braids}<path d="${hp}" fill="${hc}"/>
+<ellipse cx="36" cy="32" rx="18" ry="20" fill="${SK}"/>
+<ellipse cx="29" cy="34" rx="4" ry="4.5" fill="white"/><ellipse cx="43" cy="34" rx="4" ry="4.5" fill="white"/>
+<circle cx="30" cy="35" r="2.2" fill="${ec}"/><circle cx="44" cy="35" r="2.2" fill="${ec}"/>
+<circle cx="31" cy="34.5" r=".7" fill="white"/><circle cx="45" cy="34.5" r=".7" fill="white"/>
+${glass}<ellipse cx="36" cy="40" rx="2" ry="1.2" fill="${SD}"/>
+<path d="M31 44 Q36 47 41 44" fill="none" stroke="#C07070" stroke-width="1.5" stroke-linecap="round"/>
+${ears}
+<rect x="28" y="52" width="16" height="7" rx="4" fill="${SK}"/>
+<rect x="24" y="58" width="24" height="30" rx="6" fill="${oc}"/>
+<rect x="24" y="58" width="24" height="10" rx="3" fill="${oa}" opacity=".6"/>
+${stripe}
+<rect x="18" y="58" width="8" height="24" rx="4" fill="${oc}"/>
+<rect x="46" y="58" width="8" height="24" rx="4" fill="${oc}"/>
+<ellipse cx="22" cy="83" rx="5" ry="4" fill="${SK}"/><ellipse cx="50" cy="83" rx="5" ry="4" fill="${SK}"/>
+${lower}
+<ellipse cx="28" cy="118" rx="5" ry="3" fill="#444"/><ellipse cx="44" cy="118" rx="5" ry="3" fill="#444"/>`;
+}
+function renderChar(id){ const el=document.getElementById(id); if(el) el.innerHTML=buildChar(char); }
+
+// ════════ SCREENS ════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id==='screen-customize') updateCustUI();
+  if(id==='screen-parent'){ updateParentUI(); renderTileEditor(); }
+  if(id==='screen-main') renderChar('char-main');
+}
+
+// ════════ TILES (main) ════════
+function renderTiles(){
+  const g=document.getElementById('tiles-grid'); g.innerHTML='';
+  tasks.forEach(task=>{
+    const t=document.createElement('div');
+    t.className='tile'; t.id='tile-'+task.id;
+    t.innerHTML=`<div class="tile-check">✓</div><div class="tile-emoji">${task.emoji}</div><div class="tile-label">${task.label}</div><div class="tile-est">~${task.mins}m</div>`;
+    t.onclick=()=>tileClick(task.id);
+    g.appendChild(t);
+  });
+  updateActiveTask();
+}
+
+function tileClick(id){
+  if(done.has(id)) return;
+  done.add(id); stars+=10;
+  document.getElementById('tile-'+id)?.classList.add('done');
+  updateProgress(); moveChar(); spawnConfetti();
+  setTimeout(()=>showReward(tasks.find(t=>t.id===id)),400);
+}
+
+function updateActiveTask(){
+  tasks.forEach(t=>{ document.getElementById('tile-'+t.id)?.classList.remove('active-task'); });
+  const next=tasks.find(t=>!done.has(t.id));
+  if(next){ document.getElementById('tile-'+next.id)?.classList.add('active-task'); showBubble(next.label); }
+  else { document.getElementById('task-bubble').classList.remove('show'); }
+}
+function showBubble(label){
+  const b=document.getElementById('task-bubble');
+  b.textContent='Next: '+label+' 👆'; b.classList.add('show');
+}
+
+// ════════ TILE EDITOR (parent) ════════
+function renderTileEditor(){
+  const list=document.getElementById('tile-editor-list'); list.innerHTML='';
+  tasks.forEach((task,idx)=>{
+    const row=document.createElement('div'); row.className='tile-editor-row'; row.dataset.idx=idx;
+    row.innerHTML=`
+      <span class="te-drag" title="Drag to reorder">⠿</span>
+      <button class="te-emoji-btn" onclick="openEmojiPicker(${idx})" title="Change emoji">${task.emoji}</button>
+      <input class="te-name-input" type="text" value="${task.label}" placeholder="Task name"
+        oninput="tasks[${idx}].label=this.value">
+      <div class="te-mins">
+        <button class="te-mins-btn" onclick="adjTaskMins(${idx},-1)">−</button>
+        <span class="te-mins-val" id="tmv-${idx}">${task.mins}</span>
+        <button class="te-mins-btn" onclick="adjTaskMins(${idx},1)">+</button>
+      </div>
+      <span class="te-del" onclick="deleteTask(${idx})" title="Remove task">✕</span>
+    `;
+    list.appendChild(row);
+  });
+  initDragSort();
+}
+
+function adjTaskMins(idx,d){
+  tasks[idx].mins=Math.max(1,tasks[idx].mins+d);
+  const el=document.getElementById('tmv-'+idx); if(el) el.textContent=tasks[idx].mins;
+}
+
+function deleteTask(idx){
+  if(tasks.length<=1){alert('Need at least one task!'); return;}
+  tasks.splice(idx,1);
+  renderTileEditor();
+}
+
+function addTask(){
+  tasks.push({id:'task_'+Date.now(),emoji:'⭐',label:'New task',mins:5});
+  renderTileEditor();
+  // scroll to bottom
+  setTimeout(()=>{ const el=document.getElementById('tile-editor-list'); if(el) el.lastChild?.scrollIntoView({behavior:'smooth'}); },100);
+}
+
+// ════════ DRAG TO REORDER ════════
+function initDragSort(){
+  const list=document.getElementById('tile-editor-list');
+  let dragging=null, over=null;
+
+  list.querySelectorAll('.tile-editor-row').forEach(row=>{
+    row.setAttribute('draggable','true');
+    row.addEventListener('dragstart',e=>{ dragging=row; setTimeout(()=>row.classList.add('dragging'),0); });
+    row.addEventListener('dragend',()=>{ row.classList.remove('dragging'); dragging=null; applyOrder(); });
+    row.addEventListener('dragover',e=>{ e.preventDefault(); if(row!==dragging){ list.insertBefore(dragging,row); }});
+  });
+}
+
+function applyOrder(){
+  const rows=[...document.getElementById('tile-editor-list').querySelectorAll('.tile-editor-row')];
+  const newTasks=rows.map(r=>tasks[parseInt(r.dataset.idx)]).filter(Boolean);
+  tasks=newTasks;
+  renderTileEditor();
+}
+
+// ════════ CHAR MOVEMENT ════════
+function moveChar(){
+  const sw=document.getElementById('stage').offsetWidth;
+  const pct=done.size/tasks.length;
+  const left=Math.round(6+pct*(sw-80)*0.85);
+  document.getElementById('char-wrap').style.left=left+'px';
+  renderChar('char-main'); updateActiveTask();
+}
+
+// ════════ CLOCK ════════
+function parseDep(){ const [h,m]=(depTime||'08:15').split(':').map(Number); const d=new Date(); d.setHours(h,m,0,0); return d; }
+function remainMins(){ return tasks.filter(t=>!done.has(t.id)).reduce((s,t)=>s+t.mins,0); }
+
+function tickClock(){
+  const now=new Date(),dep=parseDep();
+  const diff=Math.max(0,Math.floor((dep-now)/1000));
+  const mm=Math.floor(diff/60),ss=diff%60;
+  document.getElementById('cd-time').textContent=String(mm).padStart(2,'0')+':'+String(ss).padStart(2,'0');
+  const pill=document.getElementById('cd-status'),rem=remainMins();
+  if(diff<=0){pill.className='status-pill s-behind';pill.textContent='Time to go! 🚌';}
+  else if(mm>rem+5){pill.className='status-pill s-ahead';pill.textContent='Ahead of time ⭐';}
+  else if(mm>=rem){pill.className='status-pill s-ontime';pill.textContent='On track ✨';}
+  else{pill.className='status-pill s-behind';pill.textContent='Hurry up! 🏃';}
+}
+
+function updateProgress(){
+  const n=done.size,tot=tasks.length,pct=Math.round(n/tot*100);
+  document.getElementById('prog-mini').style.width=pct+'%';
+  document.getElementById('star-display').textContent='⭐ '+stars;
+  document.getElementById('total-stars').textContent=stars+' stars';
+  document.getElementById('stat-done').textContent=n;
+  document.getElementById('stat-stars').textContent=stars+'⭐';
+  if(n===tot){ document.getElementById('all-done').classList.add('show'); document.getElementById('btn-cust').classList.add('unlocked'); }
+}
+
+// ════════ REWARD ════════
+let vidTimer=null;
+function showReward(task){
+  const cats=['😸','😻','🙀','🐈','😹','🐱'];
+  const msgs=['Brilliant!','Nailed it!','Superstar!','Amazing!','Way to go!','Purr-fect!'];
+  document.getElementById('r-emoji').textContent=cats[Math.floor(Math.random()*cats.length)];
+  document.getElementById('r-title').textContent=msgs[Math.floor(Math.random()*msgs.length)];
+  document.getElementById('r-sub').textContent=(task?.label||'Task')+' done! Enjoy your reward 🎬';
+  document.getElementById('r-cat').textContent=cats[Math.floor(Math.random()*cats.length)];
+  document.getElementById('vfill').style.width='0%';
+  let el=0; clearInterval(vidTimer);
+  vidTimer=setInterval(()=>{ el++; document.getElementById('vfill').style.width=(el/vidLen*100)+'%'; document.getElementById('r-caption').textContent='🎬 '+(vidLen-el)+'s remaining'; if(el>=vidLen){clearInterval(vidTimer);document.getElementById('r-caption').textContent='🎬 Done!';}},1000);
+  document.getElementById('reward-overlay').classList.add('show');
+}
+function closeReward(){ clearInterval(vidTimer); document.getElementById('reward-overlay').classList.remove('show'); }
+
+// ════════ CONFETTI ════════
+function spawnConfetti(){
+  const wrap=document.getElementById('confetti');
+  const cols=['#FF7043','#7C3AED','#22C55E','#F59E0B','#38BDF8','#EC4899','#84CC16'];
+  for(let i=0;i<38;i++){
+    const el=document.createElement('div'); el.className='cp';
+    el.style.cssText=`left:${Math.random()*100}%;background:${cols[i%cols.length]};width:${6+Math.random()*8}px;height:${6+Math.random()*8}px;border-radius:${Math.random()>.5?'50%':'2px'};animation-delay:${Math.random()*.5}s;animation-duration:${1.2+Math.random()}s`;
+    wrap.appendChild(el); setTimeout(()=>el.remove(),2500);
+  }
+}
+
+// ════════ CUSTOMISE ════════
+function updateCustUI(){
+  document.querySelectorAll('[data-key]').forEach(el=>{
+    el.classList.toggle('sel', char[el.dataset.key]===el.dataset.val);
+  });
+  renderChar('char-preview');
+}
+function setPref(el){
+  char[el.dataset.key]=el.dataset.val;
+  el.closest('.opt-row').querySelectorAll('[data-key="'+el.dataset.key+'"]').forEach(e=>e.classList.remove('sel'));
+  el.classList.add('sel');
+  localStorage.setItem('mrChar',JSON.stringify(char));
+  renderChar('char-preview');
+}
+
+// ════════ PARENT SAVE ════════
+function updateParentUI(){
+  document.getElementById('dep-time-input').value=depTime;
+  document.getElementById('child-name-input').value=childName;
+  document.getElementById('vid-length-sel').value=vidLen;
+  document.getElementById('cooldown-sel').value=cooldownSecs;
+}
+function saveAll(){
+  depTime=document.getElementById('dep-time-input').value;
+  childName=document.getElementById('child-name-input').value;
+  vidLen=parseInt(document.getElementById('vid-length-sel').value);
+  cooldownSecs=parseInt(document.getElementById('cooldown-sel').value);
+  // sync any edited labels / mins from inputs
+  document.querySelectorAll('#tile-editor-list .tile-editor-row').forEach((row,i)=>{
+    const inp=row.querySelector('.te-name-input');
+    if(inp && tasks[i]) tasks[i].label=inp.value;
+  });
+  localStorage.setItem('mrDep',depTime);
+  localStorage.setItem('mrName',childName);
+  localStorage.setItem('mrVidLen',vidLen);
+  localStorage.setItem('mrCooldown',cooldownSecs);
+  localStorage.setItem('mrTasks',JSON.stringify(tasks));
+  const btn=document.querySelector('.save-btn');
+  btn.textContent='✅ Saved!'; setTimeout(()=>btn.textContent='✅ Save settings',1500);
+  // refresh main tiles
+  renderTiles();
+}
+
+// ════════ INIT ════════
+renderWeather();
+renderTiles();
+renderChar('char-main');
+renderEmojiGrid(ALL_EMOJI);
+tickClock();
+setInterval(tickClock,1000);
+updateProgress();
+</script>
+</body>
+</html>
