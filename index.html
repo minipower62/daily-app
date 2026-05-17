@@ -170,7 +170,7 @@ html,body{font-family:'Nunito',sans-serif;background:var(--bg);overflow-x:hidden
   <div class="weather-strip">
     <div class="wx-now">
       <div class="wx-icon">🌥️</div>
-      <div><div class="wx-temp">19°C</div><div class="wx-cond">Cloudy</div><div class="wx-name">Melbourne</div></div>
+      <div><div class="wx-temp">19°C</div><div class="wx-cond">Cloudy</div><div class="wx-name" id="wx-city">Melbourne</div></div>
     </div>
     <div class="wx-days" id="wx-days"></div>
   </div>
@@ -301,6 +301,19 @@ html,body{font-family:'Nunito',sans-serif;background:var(--bg);overflow-x:hidden
       <div class="parent-card-title">⏰ Schedule</div>
       <div class="field-row"><span class="field-label">Departure time</span><input class="field-input" type="time" id="dep-time-input" value="08:15"></div>
       <div class="field-row"><span class="field-label">Child's name</span><input class="field-input" type="text" id="child-name-input" value="Lily" style="width:120px;text-align:left"></div>
+    </div>
+    <div class="parent-card">
+      <div class="parent-card-title">🌤️ Weather location</div>
+      <div class="field-row"><span class="field-label">City name</span><input class="field-input" type="text" id="wx-city-input" placeholder="Melbourne" style="width:140px;text-align:left"></div>
+      <div class="field-row"><span class="field-label">Latitude</span><input class="field-input" type="text" id="wx-lat-input" placeholder="-37.8136" style="width:120px"></div>
+      <div class="field-row"><span class="field-label">Longitude</span><input class="field-input" type="text" id="wx-lon-input" placeholder="144.9631" style="width:120px"></div>
+      <div class="field-row"><span class="field-label">Temperature</span>
+        <select class="field-input" id="wx-unit-input" style="width:100px">
+          <option value="celsius">°C</option>
+          <option value="fahrenheit">°F</option>
+        </select>
+      </div>
+      <p style="font-size:11px;color:var(--muted);font-weight:600;margin-top:2px">Find lat/lon at <strong>latlong.net</strong> — search your suburb</p>
     </div>
     <div class="parent-card">
       <div class="parent-card-title">🎯 Morning tasks — tap emoji to change</div>
@@ -718,12 +731,132 @@ let cooldownSecs = parseInt(localStorage.getItem('mrCooldown')||'60');
 let char = JSON.parse(localStorage.getItem('mrChar')||'null') || {hairColor:'brown',hairStyle:'long',eyeColor:'blue',outfit:'uniform',earrings:'cat',glasses:'none'};
 
 // ═══════════════════════════════════════════
-// WEATHER
+// WEATHER — live from Open-Meteo (free, no API key)
 // ═══════════════════════════════════════════
-const WX={days:[{name:'Sat',icon:'🌥️',hi:23,rain:10},{name:'Sun',icon:'🌧️',hi:17,rain:77},{name:'Mon',icon:'🌦️',hi:17,rain:35},{name:'Tue',icon:'🌦️',hi:16,rain:35},{name:'Wed',icon:'🌦️',hi:16,rain:25}]};
-function renderWeather(){
-  const w=document.getElementById('wx-days'); w.innerHTML='';
-  WX.days.slice(0,4).forEach(d=>{ const el=document.createElement('div'); el.className='wx-day'; el.innerHTML=`<div class="wx-day-name">${d.name}</div><div class="wx-day-icon">${d.icon}</div><div class="wx-day-hi">${d.hi}°</div><div class="wx-day-rain">${d.rain}%💧</div>`; w.appendChild(el); });
+
+// WMO weather code → emoji + label
+function wxCodeToIcon(code) {
+  if (code === 0)            return {icon:'☀️', label:'Sunny'};
+  if (code <= 2)             return {icon:'⛅', label:'Partly cloudy'};
+  if (code === 3)            return {icon:'🌥️', label:'Cloudy'};
+  if (code <= 49)            return {icon:'🌫️', label:'Foggy'};
+  if (code <= 57)            return {icon:'🌧️', label:'Drizzle'};
+  if (code <= 65)            return {icon:'🌧️', label:'Rain'};
+  if (code <= 77)            return {icon:'❄️', label:'Snow'};
+  if (code <= 82)            return {icon:'🌦️', label:'Showers'};
+  if (code <= 99)            return {icon:'⛈️', label:'Thunderstorm'};
+  return {icon:'🌤️', label:'Mixed'};
+}
+
+var WX_LOCATION = {
+  lat:  localStorage.getItem('mrLat')  || '-37.8136',
+  lon:  localStorage.getItem('mrLon')  || '144.9631',
+  name: localStorage.getItem('mrCity') || 'Melbourne',
+  unit: localStorage.getItem('mrUnit') || 'celsius'
+};
+
+function renderWeatherData(current, days) {
+  var icon  = document.getElementById('wx-icon');
+  var temp  = document.getElementById('wx-temp');
+  var cond  = document.getElementById('wx-cond');
+  var city  = document.getElementById('wx-city');
+  var wrap  = document.getElementById('wx-days');
+  if (!wrap) return;
+
+  var w = wxCodeToIcon(current.code);
+  if (icon) icon.textContent = w.icon;
+  if (temp) temp.textContent = Math.round(current.temp) + (WX_LOCATION.unit === 'fahrenheit' ? '°F' : '°C');
+  if (cond) cond.textContent = w.label;
+  if (city) city.textContent = WX_LOCATION.name;
+
+  wrap.innerHTML = '';
+  var dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  days.slice(0,4).forEach(function(d) {
+    var dw = wxCodeToIcon(d.code);
+    var el = document.createElement('div');
+    el.className = 'wx-day';
+    var nm  = document.createElement('div'); nm.className  = 'wx-day-name'; nm.textContent = d.name;
+    var ic  = document.createElement('div'); ic.className  = 'wx-day-icon'; ic.textContent = dw.icon;
+    var hi  = document.createElement('div'); hi.className  = 'wx-day-hi';   hi.textContent = Math.round(d.hi) + '°';
+    var rn  = document.createElement('div'); rn.className  = 'wx-day-rain'; rn.textContent = d.rain + '%💧';
+    el.appendChild(nm); el.appendChild(ic); el.appendChild(hi); el.appendChild(rn);
+    wrap.appendChild(el);
+  });
+}
+
+function renderWeatherFallback() {
+  var icon = document.getElementById('wx-icon');
+  var temp = document.getElementById('wx-temp');
+  var cond = document.getElementById('wx-cond');
+  if (icon) icon.textContent = '🌤️';
+  if (temp) temp.textContent = '--°';
+  if (cond) cond.textContent = 'No connection';
+}
+
+function fetchWeather() {
+  var lat  = WX_LOCATION.lat;
+  var lon  = WX_LOCATION.lon;
+  var unit = WX_LOCATION.unit === 'fahrenheit' ? 'fahrenheit' : 'celsius';
+  var url  = 'https://api.open-meteo.com/v1/forecast'
+    + '?latitude='  + lat
+    + '&longitude=' + lon
+    + '&current=temperature_2m,weathercode'
+    + '&daily=weathercode,temperature_2m_max,precipitation_probability_max'
+    + '&temperature_unit=' + unit
+    + '&timezone=auto'
+    + '&forecast_days=5';
+
+  fetch(url)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var current = {
+        temp: data.current.temperature_2m,
+        code: data.current.weathercode
+      };
+      var dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      var days = data.daily.time.map(function(t, i) {
+        var d = new Date(t + 'T12:00:00');
+        return {
+          name: dayNames[d.getDay()],
+          code: data.daily.weathercode[i],
+          hi:   data.daily.temperature_2m_max[i],
+          rain: data.daily.precipitation_probability_max[i] || 0
+        };
+      });
+      // Cache for offline fallback
+      localStorage.setItem('mrWxCache', JSON.stringify({current:current, days:days, ts:Date.now()}));
+      renderWeatherData(current, days);
+    })
+    .catch(function() {
+      // Try cache first
+      var cached = localStorage.getItem('mrWxCache');
+      if (cached) {
+        try {
+          var c = JSON.parse(cached);
+          renderWeatherData(c.current, c.days);
+          var cond = document.getElementById('wx-cond');
+          if (cond) cond.textContent += ' (cached)';
+          return;
+        } catch(e) {}
+      }
+      renderWeatherFallback();
+    });
+}
+
+function renderWeather() {
+  // Show cached data instantly if available, then fetch fresh
+  var cached = localStorage.getItem('mrWxCache');
+  if (cached) {
+    try {
+      var c = JSON.parse(cached);
+      // Use cache if less than 1 hour old
+      if (Date.now() - c.ts < 3600000) {
+        renderWeatherData(c.current, c.days);
+      }
+    } catch(e) {}
+  }
+  // Always fetch fresh in background
+  fetchWeather();
 }
 
 // ═══════════════════════════════════════════
@@ -1150,12 +1283,21 @@ function updateParentUI(){
   document.getElementById('vid-length-sel').value=vidLen;
   document.getElementById('cooldown-sel').value=cooldownSecs;
   // Music URLs
-  ['zen','pop','rock','classical'].forEach(g=>{
-    const el=document.getElementById('murl-'+g);
+  ['zen','pop','rock','classical'].forEach(function(g){
+    var el=document.getElementById('murl-'+g);
     if(el) el.value = musicUrls[g]||'';
   });
   // Video URLs
   renderVideoUrlList();
+  // Weather location
+  var wci = document.getElementById('wx-city-input');
+  var wla = document.getElementById('wx-lat-input');
+  var wlo = document.getElementById('wx-lon-input');
+  var wun = document.getElementById('wx-unit-input');
+  if(wci) wci.value = WX_LOCATION.name;
+  if(wla) wla.value = WX_LOCATION.lat;
+  if(wlo) wlo.value = WX_LOCATION.lon;
+  if(wun) wun.value = WX_LOCATION.unit;
 }
 
 function renderVideoUrlList(){
@@ -1185,22 +1327,38 @@ function saveAll(){
   childName=document.getElementById('child-name-input').value;
   vidLen=parseInt(document.getElementById('vid-length-sel').value);
   cooldownSecs=parseInt(document.getElementById('cooldown-sel').value);
-  document.querySelectorAll('#tile-editor-list .tile-editor-row').forEach((row,i)=>{const inp=row.querySelector('.te-name-input');if(inp&&tasks[i])tasks[i].label=inp.value});
+  document.querySelectorAll('#tile-editor-list .tile-editor-row').forEach(function(row,i){
+    var inp=row.querySelector('.te-name-input');if(inp&&tasks[i])tasks[i].label=inp.value;
+  });
   // Save music URLs
-  ['zen','pop','rock','classical'].forEach(g=>{
-    const el=document.getElementById('murl-'+g);
+  ['zen','pop','rock','classical'].forEach(function(g){
+    var el=document.getElementById('murl-'+g);
     if(el && el.value.trim()) musicUrls[g]=el.value.trim();
   });
   // Save video URLs (filter blanks)
-  const vidInputs=[...document.querySelectorAll('.vid-url-input')];
-  videoUrls = vidInputs.map(i=>i.value.trim()).filter(Boolean);
+  var vidInputs=Array.prototype.slice.call(document.querySelectorAll('.vid-url-input'));
+  videoUrls = vidInputs.map(function(i){return i.value.trim();}).filter(Boolean);
+  // Save weather location
+  var wci=document.getElementById('wx-city-input');
+  var wla=document.getElementById('wx-lat-input');
+  var wlo=document.getElementById('wx-lon-input');
+  var wun=document.getElementById('wx-unit-input');
+  if(wci && wci.value.trim()){ WX_LOCATION.name=wci.value.trim(); localStorage.setItem('mrCity',WX_LOCATION.name); }
+  if(wla && wla.value.trim()){ WX_LOCATION.lat =wla.value.trim(); localStorage.setItem('mrLat', WX_LOCATION.lat);  }
+  if(wlo && wlo.value.trim()){ WX_LOCATION.lon =wlo.value.trim(); localStorage.setItem('mrLon', WX_LOCATION.lon);  }
+  if(wun){ WX_LOCATION.unit=wun.value; localStorage.setItem('mrUnit',WX_LOCATION.unit); }
+  localStorage.removeItem('mrWxCache'); // force fresh fetch after location change
   localStorage.setItem('mrDep',depTime);localStorage.setItem('mrName',childName);
   localStorage.setItem('mrVidLen',vidLen);localStorage.setItem('mrCooldown',cooldownSecs);
   localStorage.setItem('mrTasks',JSON.stringify(tasks));
   localStorage.setItem('mrMusicUrls',JSON.stringify(musicUrls));
   localStorage.setItem('mrVideoUrls',JSON.stringify(videoUrls));
-  const btn=document.querySelector('.save-btn');btn.textContent='✅ Saved!';setTimeout(()=>btn.textContent='✅ Save settings',1500);
+  var btn=document.querySelector('.save-btn');
+  btn.textContent='✅ Saved!';
+  setTimeout(function(){btn.textContent='✅ Save settings';},1500);
   renderTiles();
+  fetchWeather();
+  var cityEl=document.getElementById('wx-city'); if(cityEl) cityEl.textContent=WX_LOCATION.name;
 }
 
 // ═══════════════════════════════════════════
