@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Morning Routine ✨</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#FFF8EE;--card:#FFF;--text:#2D2010;--muted:#9A7E5A;--border:rgba(160,120,60,0.15);
+  --green:#16A34A;--purple:#7C3AED;--accent:#FF6B35;
+}
+html,body{font-family:'Nunito',sans-serif;background:var(--bg);overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+.screen{display:none;flex-direction:column;min-height:100vh}
+.screen.active{display:flex}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 0}
+.topbar-title{font-size:17px;font-weight:900;color:var(--text)}
+.icon-btn{background:none;border:none;cursor:pointer;font-size:18px;padding:6px;border-radius:10px;line-height:1;touch-action:manipulation}
+.icon-btn:active{background:rgba(0,0,0,0.08)}
+/* WEATHER */
+.weather-strip{margin:10px 14px 0;background:linear-gradient(135deg,#0EA5E9,#38BDF8);border-radius:18px;padding:11px 14px;display:flex;align-items:center;gap:10px}
+.wx-now{display:flex;align-items:center;gap:8px;flex:1}
+.wx-icon{font-size:26px;line-height:1}
+.wx-temp{font-size:20px;font-weight:900;color:#fff}
+.wx-cond{font-size:10px;font-weight:700;color:rgba(255,255,255,.8)}
+.wx-name{font-size:9px;font-weight:700;color:rgba(255,255,255,.6);margin-top:1px}
+.wx-days{display:flex;gap:5px}
+.wx-day{background:rgba(255,255,255,.18);border-radius:10px;padding:4px 6px;text-align:center;min-width:40px}
+.wx-day-name{font-size:8px;font-weight:800;color:rgba(255,255,255,.7);text-transform:uppercase}
+.wx-day-icon{font-size:13px;line-height:1.4}
+.wx-day-hi{font-size:10px;font-weight:800;color:#fff}
+.wx-day-rain{font-size:8px;font-weight:700;color:rgba(255,255,255,.7)}
+/* MUSIC */
+.music-bar{margin:8px 14px 0;background:var(--card);border-radius:16px;border:1.5px solid var(--border);padding:8px 11px;display:flex;align-items:center;gap:7px}
+.music-label{font-size:11px;font-weight:800;color:var(--muted);min-width:30px}
+.music-genres{display:flex;gap:5px;flex:1}
+.genre-btn{flex:1;padding:6px 2px;border-radius:9px;border:1.5px solid var(--border);background:var(--bg);font-family:'Nunito',sans-serif;font-size:10px;font-weight:800;cursor:pointer;color:var(--text);transition:background .15s,border-color .15s,opacity .2s;text-align:center;touch-action:manipulation}
+.genre-btn.playing{background:#F3E8FF;border-color:var(--purple);color:var(--purple)}
+.genre-btn.cooling{opacity:.4;cursor:not-allowed;pointer-events:none}
+.music-note{font-size:14px;animation:bouncenote .6s ease-in-out infinite alternate;display:inline-block}
+@keyframes bouncenote{0%{transform:translateY(0) rotate(-8deg)}100%{transform:translateY(-3px) rotate(8deg)}}
+.cooldown-bar-wrap{width:26px;height:4px;background:rgba(0,0,0,.08);border-radius:99px;overflow:hidden;display:none}
+.cooldown-bar-fill{height:100%;background:var(--purple);border-radius:99px;transition:width .1s linear}
+/* COUNTDOWN */
+.countdown-strip{margin:8px 14px 0;background:var(--text);border-radius:18px;padding:11px 15px;display:flex;align-items:center;gap:12px}
+.countdown-time{font-size:26px;font-weight:900;color:#fff;letter-spacing:-1px;line-height:1}
+.countdown-right{flex:1}
+.countdown-label{font-size:9px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px}
+.status-pill{display:inline-block;font-size:10px;font-weight:800;padding:3px 9px;border-radius:20px;margin-top:3px}
+.s-ahead{background:#DCFCE7;color:#14532D}.s-ontime{background:#DBEAFE;color:#1E3A8A}.s-behind{background:#FEE2E2;color:#7F1D1D}
+.progress-mini{height:5px;background:rgba(255,255,255,.15);border-radius:99px;margin-top:7px;overflow:hidden}
+.progress-mini-fill{height:100%;background:linear-gradient(90deg,#4ADE80,#22D3EE);border-radius:99px;transition:width .5s}
+/* STAGE */
+.stage{margin:8px 14px 0;background:linear-gradient(180deg,#E0F2FE 0%,#BAE6FD 55%,#FDE68A 100%);border-radius:20px;height:190px;position:relative;overflow:hidden;flex-shrink:0}
+.stage-ground{position:absolute;bottom:0;left:0;right:0;height:44px;background:#A3D977;border-radius:0 0 20px 20px}
+.stage-ground::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:#7EC850}
+.stage-sun{position:absolute;top:10px;right:18px;font-size:26px}
+.stage-cloud{position:absolute;top:12px;left:20px;font-size:16px;opacity:.85}
+.stage-cloud2{position:absolute;top:20px;left:56px;font-size:12px;opacity:.6}
+.stage-house{position:absolute;bottom:40px;right:12px;font-size:32px}
+.char-wrap{position:absolute;bottom:40px;transition:left .7s cubic-bezier(.34,1.2,.64,1)}
+.task-bubble{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:white;border-radius:11px;padding:4px 10px;font-size:10px;font-weight:800;color:var(--text);box-shadow:0 2px 10px rgba(0,0,0,.12);opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.task-bubble.show{opacity:1}
+/* TILES */
+.tiles-section{padding:8px 14px;flex:1}
+.tiles-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.tile{background:var(--card);border-radius:13px;padding:10px 6px 9px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;border:2px solid var(--border);transition:transform .15s,box-shadow .15s,border-color .2s,background .2s;position:relative;overflow:hidden;min-height:84px;justify-content:center;touch-action:manipulation}
+.tile:active{transform:scale(.93)}
+.tile.done{border-color:#BBF7D0;background:#F0FDF4}
+.tile.active-task{border-color:#FDE68A;background:#FFFBEB;box-shadow:0 0 0 3px rgba(253,230,138,.5)}
+.tile-emoji{font-size:28px;line-height:1;transition:transform .2s}
+.tile.done .tile-emoji{transform:scale(1.1)}
+.tile-label{font-size:10px;font-weight:800;color:var(--text);text-align:center;line-height:1.2}
+.tile.done .tile-label{color:#166534}
+.tile-est{font-size:9px;font-weight:600;color:var(--muted)}
+.tile-check{position:absolute;top:5px;right:5px;width:17px;height:17px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;opacity:0;transform:scale(0);transition:opacity .2s,transform .3s cubic-bezier(.34,1.56,.64,1);font-size:10px;color:white;font-weight:900}
+.tile.done .tile-check{opacity:1;transform:scale(1)}
+/* BOTTOM BAR */
+.bottom-bar{padding:9px 14px 14px;display:flex;align-items:center;gap:8px;background:var(--card);border-top:1.5px solid var(--border)}
+.points-box{display:flex;align-items:center;gap:5px;flex:1}
+.points-box span{font-size:12px;font-weight:800}
+.streak-pill{background:#FEF3C7;color:#92400E;font-size:10px;font-weight:800;padding:3px 8px;border-radius:20px}
+.btn-customize{background:linear-gradient(135deg,#7C3AED,#EC4899);color:white;border:none;border-radius:11px;padding:8px 12px;font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;cursor:pointer;opacity:.4;pointer-events:none;transition:opacity .3s;touch-action:manipulation}
+.btn-customize.unlocked{opacity:1;pointer-events:all}
+.all-done{background:linear-gradient(135deg,#7C3AED,#EC4899);border-radius:15px;padding:13px;text-align:center;color:white;display:none;margin:0 14px 7px}
+.all-done.show{display:block}
+.all-done h3{font-size:17px;font-weight:900;margin:3px 0 3px}
+.all-done p{font-size:11px;font-weight:600;opacity:.85}
+/* MODALS */
+.overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity .3s}
+.overlay.show{opacity:1;pointer-events:all}
+.modal{background:white;border-radius:22px;padding:20px 16px 16px;width:290px;text-align:center;transform:scale(.85);transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
+.overlay.show .modal{transform:scale(1)}
+.modal-big{font-size:48px;margin-bottom:6px}
+.modal-title{font-size:18px;font-weight:900;color:var(--text);margin-bottom:3px}
+.modal-sub{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:12px}
+.video-box{background:#0F172A;border-radius:12px;height:110px;display:flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:12px;position:relative;overflow:hidden}
+.video-emoji{font-size:38px}
+.video-caption{font-size:10px;color:rgba(255,255,255,.5);font-weight:700;margin-top:3px}
+.vbar{position:absolute;bottom:0;left:0;right:0;height:4px;background:rgba(255,255,255,.15)}
+.vfill{height:100%;background:var(--accent);width:0%;transition:width .1s linear}
+.btn-primary{width:100%;padding:12px;background:var(--purple);color:white;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;touch-action:manipulation}
+/* CUSTOMIZE */
+.cust-scroll{flex:1;overflow-y:auto;padding:14px;-webkit-overflow-scrolling:touch}
+.cust-preview{background:linear-gradient(180deg,#E0F2FE,#BAE6FD 60%,#FDE68A 100%);border-radius:18px;height:200px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:16px;overflow:hidden;position:relative}
+.cust-ground{position:absolute;bottom:0;left:0;right:0;height:34px;background:#A3D977}
+.cust-char{position:absolute;bottom:28px;display:flex;align-items:center;justify-content:center}
+.cust-section{margin-bottom:16px}
+.cust-label{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px}
+.opt-row{display:flex;gap:7px;flex-wrap:wrap}
+.opt-btn{padding:7px 11px;border-radius:10px;border:2px solid var(--border);background:var(--card);font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;cursor:pointer;color:var(--text);transition:border-color .15s,background .15s;touch-action:manipulation}
+.opt-btn.sel{border-color:var(--purple);background:#F3E8FF;color:var(--purple)}
+.color-dot{width:30px;height:30px;border-radius:50%;border:3px solid transparent;cursor:pointer;transition:border-color .15s;touch-action:manipulation}
+.color-dot.sel{border-color:var(--purple)}
+/* PARENT */
+.parent-scroll{flex:1;overflow-y:auto;padding:14px;-webkit-overflow-scrolling:touch}
+.parent-card{background:var(--card);border-radius:14px;border:1.5px solid var(--border);padding:13px 14px;margin-bottom:10px}
+.parent-card-title{font-size:13px;font-weight:800;color:var(--text);margin-bottom:11px}
+.field-row{display:flex;align-items:center;margin-bottom:9px;gap:8px}
+.field-label{font-size:12px;font-weight:700;color:var(--muted);flex:1}
+.field-input{font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;border:1.5px solid var(--border);border-radius:9px;padding:6px 9px;background:var(--bg);color:var(--text);width:90px;text-align:center}
+.stat-row{display:flex;gap:7px;margin-bottom:10px}
+.stat-box{flex:1;background:var(--bg);border-radius:11px;padding:9px;text-align:center}
+.stat-num{font-size:22px;font-weight:900;color:var(--purple)}
+.stat-lbl{font-size:10px;font-weight:700;color:var(--muted)}
+.save-btn{width:100%;padding:12px;background:var(--green);color:white;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;margin-top:3px;touch-action:manipulation}
+/* TILE EDITOR */
+.tile-editor-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.tile-editor-row{display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:12px;padding:8px 10px;border:1.5px solid var(--border)}
+.tile-editor-row.dragging{opacity:.4}
+.te-drag{font-size:16px;color:var(--muted);cursor:grab;padding:0 2px;touch-action:none}
+.te-emoji-btn{font-size:22px;width:42px;height:42px;border-radius:10px;border:1.5px solid var(--border);background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;touch-action:manipulation}
+.te-name-input{flex:1;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;border:1.5px solid var(--border);border-radius:9px;padding:7px 9px;background:var(--card);color:var(--text);min-width:0}
+.te-mins{display:flex;align-items:center;gap:4px}
+.te-mins-btn{width:24px;height:24px;border-radius:7px;border:1.5px solid var(--border);background:var(--card);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text);font-family:'Nunito',sans-serif;touch-action:manipulation}
+.te-mins-val{font-size:12px;font-weight:800;color:var(--text);width:22px;text-align:center}
+.te-del{font-size:16px;cursor:pointer;color:#EF4444;padding:4px;touch-action:manipulation}
+.te-add-btn{width:100%;padding:10px;background:var(--card);color:var(--purple);border:2px dashed var(--purple);border-radius:12px;font-size:13px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;margin-bottom:10px;touch-action:manipulation}
+/* EMOJI PICKER */
+.emoji-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;z-index:200;opacity:0;pointer-events:none;transition:opacity .25s}
+.emoji-overlay.show{opacity:1;pointer-events:all}
+.emoji-sheet{background:white;border-radius:22px 22px 0 0;padding:16px 14px 30px;width:100%;max-width:480px;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.emoji-overlay.show .emoji-sheet{transform:translateY(0)}
+.emoji-sheet-title{font-size:14px;font-weight:900;color:var(--text);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.emoji-search{width:100%;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;border:1.5px solid var(--border);border-radius:10px;padding:8px 12px;background:var(--bg);color:var(--text);margin-bottom:10px}
+.emoji-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;max-height:220px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.emoji-opt{font-size:24px;text-align:center;padding:6px 0;cursor:pointer;border-radius:8px;touch-action:manipulation}
+.emoji-opt:active{background:var(--bg)}
+.url-field-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.url-field-label{font-size:12px;font-weight:800;color:var(--text);min-width:84px}
+.url-input{flex:1;font-family:'Nunito',sans-serif;font-size:11px;font-weight:700;border:1.5px solid var(--border);border-radius:9px;padding:7px 9px;background:var(--bg);color:var(--text);min-width:0}
+.vid-url-row{display:flex;align-items:center;gap:6px;margin-bottom:7px}
+.vid-url-input{flex:1;font-family:'Nunito',sans-serif;font-size:11px;font-weight:700;border:1.5px solid var(--border);border-radius:9px;padding:7px 9px;background:var(--bg);color:var(--text);min-width:0}
+.vid-url-del{font-size:16px;cursor:pointer;color:#EF4444;padding:4px;touch-action:manipulation;flex-shrink:0}
+/* CONFETTI */
+.confetti-wrap{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:300;overflow:hidden}
+.cp{position:absolute;border-radius:2px;animation:cffall 1.8s ease-in forwards}
+@keyframes cffall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}80%{opacity:1}100%{transform:translateY(700px) rotate(720deg);opacity:0}}
+</style>
+</head>
+<body>
+
+<!-- ══ MAIN ══ -->
+<div class="screen active" id="screen-main">
+  <div class="topbar">
+    <div style="font-size:18px;font-weight:900;color:var(--text)">Good morning! 🌤️</div>
+    <button class="icon-btn" onclick="showScreen('screen-parent')">⚙️</button>
+  </div>
+  <div class="weather-strip">
+    <div class="wx-now">
+      <div class="wx-icon">🌥️</div>
+      <div><div class="wx-temp">19°C</div><div class="wx-cond">Cloudy</div><div class="wx-name">Melbourne</div></div>
+    </div>
+    <div class="wx-days" id="wx-days"></div>
+  </div>
+  <div class="music-bar">
+    <span class="music-label" id="music-label">🎵</span>
+    <div class="music-genres">
+      <button class="genre-btn" id="gbtn-zen"       onclick="toggleMusic('zen')">🧘 Zen</button>
+      <button class="genre-btn" id="gbtn-pop"       onclick="toggleMusic('pop')">🎤 Pop</button>
+      <button class="genre-btn" id="gbtn-rock"      onclick="toggleMusic('rock')">🎸 Rock</button>
+      <button class="genre-btn" id="gbtn-classical" onclick="toggleMusic('classical')">🎻 Classical</button>
+    </div>
+    <div class="cooldown-bar-wrap" id="cd-bar-wrap"><div class="cooldown-bar-fill" id="cd-bar-fill" style="width:100%"></div></div>
+  </div>
+  <div class="countdown-strip">
+    <div class="countdown-time" id="cd-time">--:--</div>
+    <div class="countdown-right">
+      <div class="countdown-label">until you leave</div>
+      <div class="status-pill s-ontime" id="cd-status">On track ✨</div>
+      <div class="progress-mini"><div class="progress-mini-fill" id="prog-mini" style="width:0%"></div></div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,.5)">STARS TODAY</div>
+      <div style="font-size:20px;font-weight:900;color:#FDE68A" id="star-display">⭐ 0</div>
+    </div>
+  </div>
+  <div class="stage" id="stage">
+    <div class="stage-cloud">☁️</div><div class="stage-cloud2">☁️</div>
+    <div class="stage-sun">☀️</div><div class="stage-house">🏠</div>
+    <div class="stage-ground"></div>
+    <div class="task-bubble" id="task-bubble"></div>
+    <div class="char-wrap" id="char-wrap" style="left:6px">
+      <svg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 160 260" id="char-main"></svg>
+    </div>
+  </div>
+  <div class="all-done" id="all-done"><div style="font-size:30px">🎉</div><h3>You're all ready!</h3><p>Amazing — have an incredible day!</p></div>
+  <div class="tiles-section"><div class="tiles-grid" id="tiles-grid"></div></div>
+  <div class="bottom-bar">
+    <div class="points-box"><span>⭐</span><span id="total-stars">0 stars</span><span class="streak-pill">🔥 3 days</span></div>
+    <button class="btn-customize" id="btn-cust" onclick="showScreen('screen-customize')">✨ Customise</button>
+  </div>
+</div>
+
+<!-- ══ CUSTOMIZE CHARACTER ══ -->
+<div class="screen" id="screen-customize">
+  <div class="topbar">
+    <button class="icon-btn" onclick="showScreen('screen-main')">← Back</button>
+    <div class="topbar-title">Your Character</div>
+    <div style="width:30px"></div>
+  </div>
+  <div class="cust-scroll">
+    <div class="cust-preview">
+      <div class="cust-ground"></div>
+      <div class="cust-char"><svg xmlns="http://www.w3.org/2000/svg" width="100" height="200" viewBox="0 0 160 260" id="char-preview"></svg></div>
+    </div>
+    <div class="cust-section">
+      <div class="cust-label">Hair colour</div>
+      <div class="opt-row">
+        <div class="color-dot sel" style="background:#4A2C0A" data-key="hairColor" data-val="brown"  onclick="setPref(this)"></div>
+        <div class="color-dot"     style="background:#F5C842" data-key="hairColor" data-val="blonde" onclick="setPref(this)"></div>
+        <div class="color-dot"     style="background:#1a1a1a" data-key="hairColor" data-val="black"  onclick="setPref(this)"></div>
+        <div class="color-dot"     style="background:#C0392B" data-key="hairColor" data-val="red"    onclick="setPref(this)"></div>
+        <div class="color-dot"     style="background:#E91E8C" data-key="hairColor" data-val="pink"   onclick="setPref(this)"></div>
+      </div>
+    </div>
+    <div class="cust-section">
+      <div class="cust-label">Hair style</div>
+      <div class="opt-row">
+        <button class="opt-btn sel" data-key="hairStyle" data-val="long"   onclick="setPref(this)">Long</button>
+        <button class="opt-btn"     data-key="hairStyle" data-val="short"  onclick="setPref(this)">Short</button>
+        <button class="opt-btn"     data-key="hairStyle" data-val="bun"    onclick="setPref(this)">Bun</button>
+        <button class="opt-btn"     data-key="hairStyle" data-val="braids" onclick="setPref(this)">Braids</button>
+        <button class="opt-btn"     data-key="hairStyle" data-val="curly"  onclick="setPref(this)">Curly</button>
+      </div>
+    </div>
+    <div class="cust-section">
+      <div class="cust-label">Eye colour</div>
+      <div class="opt-row">
+        <div class="color-dot sel" style="background:#4A90D9" data-key="eyeColor" data-val="blue"   onclick="setPref(this)"></div>
+        <div class="color-dot"     style="background:#27AE60" data-key="eyeColor" data-val="green"  onclick="setPref(this)"></div>
+        <div class="color-dot"     style="background:#7D5A3C" data-key="eyeColor" data-val="brown"  onclick="setPref(this)"></div>
+        <div class="color-dot"     style="background:#8E44AD" data-key="eyeColor" data-val="violet" onclick="setPref(this)"></div>
+      </div>
+    </div>
+    <div class="cust-section">
+      <div class="cust-label">Outfit</div>
+      <div class="opt-row">
+        <button class="opt-btn sel" data-key="outfit" data-val="uniform" onclick="setPref(this)">Uniform</button>
+        <button class="opt-btn"     data-key="outfit" data-val="casual"  onclick="setPref(this)">Casual</button>
+        <button class="opt-btn"     data-key="outfit" data-val="sporty"  onclick="setPref(this)">Sporty</button>
+        <button class="opt-btn"     data-key="outfit" data-val="cozy"    onclick="setPref(this)">Cozy</button>
+      </div>
+    </div>
+    <div class="cust-section">
+      <div class="cust-label">Earrings</div>
+      <div class="opt-row">
+        <button class="opt-btn"     data-key="earrings" data-val="none"      onclick="setPref(this)">None</button>
+        <button class="opt-btn sel" data-key="earrings" data-val="cat"       onclick="setPref(this)">🐱 Cat</button>
+        <button class="opt-btn"     data-key="earrings" data-val="stars"     onclick="setPref(this)">⭐ Stars</button>
+        <button class="opt-btn"     data-key="earrings" data-val="hearts"    onclick="setPref(this)">❤️ Hearts</button>
+      </div>
+    </div>
+    <div class="cust-section">
+      <div class="cust-label">Glasses</div>
+      <div class="opt-row">
+        <button class="opt-btn"     data-key="glasses" data-val="none"       onclick="setPref(this)">None</button>
+        <button class="opt-btn sel" data-key="glasses" data-val="sunglasses" onclick="setPref(this)">🕶️ Sunnies</button>
+        <button class="opt-btn"     data-key="glasses" data-val="reading"    onclick="setPref(this)">👓 Readers</button>
+      </div>
+    </div>
+    <div style="padding-bottom:20px"></div>
+  </div>
+</div>
+
+<!-- ══ PARENT ══ -->
+<div class="screen" id="screen-parent">
+  <div class="topbar">
+    <button class="icon-btn" onclick="showScreen('screen-main')">← Back</button>
+    <div class="topbar-title">Parent Dashboard</div>
+    <div style="width:30px"></div>
+  </div>
+  <div class="parent-scroll">
+    <div class="stat-row">
+      <div class="stat-box"><div class="stat-num" id="stat-done">0</div><div class="stat-lbl">Done today</div></div>
+      <div class="stat-box"><div class="stat-num">3🔥</div><div class="stat-lbl">Day streak</div></div>
+      <div class="stat-box"><div class="stat-num" id="stat-stars">0⭐</div><div class="stat-lbl">Stars earned</div></div>
+    </div>
+    <div class="parent-card">
+      <div class="parent-card-title">⏰ Schedule</div>
+      <div class="field-row"><span class="field-label">Departure time</span><input class="field-input" type="time" id="dep-time-input" value="08:15"></div>
+      <div class="field-row"><span class="field-label">Child's name</span><input class="field-input" type="text" id="child-name-input" value="Lily" style="width:120px;text-align:left"></div>
+    </div>
+    <div class="parent-card">
+      <div class="parent-card-title">🎯 Morning tasks — tap emoji to change</div>
+      <div class="tile-editor-list" id="tile-editor-list"></div>
+      <button class="te-add-btn" onclick="addTask()">＋ Add a task</button>
+    </div>
+    <div class="parent-card">
+      <div class="parent-card-title">🎵 Music links</div>
+      <p style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:10px">Paste a YouTube, Apple Music, or Spotify URL for each genre. Tapping the button opens it in a new tab so music plays while she does her tasks.</p>
+      <div class="url-field-row"><span class="url-field-label">🧘 Zen</span><input class="url-input" type="url" id="murl-zen" placeholder="https://youtube.com/watch?v=…"></div>
+      <div class="url-field-row"><span class="url-field-label">🎤 Pop</span><input class="url-input" type="url" id="murl-pop" placeholder="https://youtube.com/watch?v=…"></div>
+      <div class="url-field-row"><span class="url-field-label">🎸 Rock</span><input class="url-input" type="url" id="murl-rock" placeholder="https://youtube.com/watch?v=…"></div>
+      <div class="url-field-row"><span class="url-field-label">🎻 Classical</span><input class="url-input" type="url" id="murl-classical" placeholder="https://youtube.com/watch?v=…"></div>
+      <div class="field-row" style="margin-top:10px"><span class="field-label">Switch cooldown</span><select class="field-input" id="cooldown-sel" style="width:90px"><option value="30">30 sec</option><option value="60" selected>1 min</option><option value="120">2 min</option><option value="300">5 min</option></select></div>
+    </div>
+
+    <div class="parent-card">
+      <div class="parent-card-title">📺 Cat video rewards</div>
+      <div class="field-row"><span class="field-label">Clip length shown</span><select class="field-input" id="vid-length-sel" style="width:90px"><option value="15">15 sec</option><option value="30" selected>30 sec</option><option value="60">60 sec</option></select></div>
+      <p style="font-size:11px;color:var(--muted);font-weight:600;margin:8px 0 10px">Add pre-approved YouTube video or playlist URLs below. One is picked at random each time a task is completed, and opened in a new tab.</p>
+      <div id="vid-url-list"></div>
+      <button class="te-add-btn" style="margin-top:4px" onclick="addVideoUrl()">＋ Add video / playlist URL</button>
+    </div>
+    <button class="save-btn" onclick="saveAll()">✅ Save settings</button>
+    <div style="height:24px"></div>
+  </div>
+</div>
+
+<!-- REWARD MODAL -->
+<div class="overlay" id="reward-overlay">
+  <div class="modal" style="width:320px">
+    <div class="modal-big" id="r-emoji">🐱</div>
+    <div class="modal-title" id="r-title">Brilliant!</div>
+    <div class="modal-sub" id="r-sub">Here's your reward 🎬</div>
+    <!-- YouTube embed container -->
+    <div id="r-video-wrap" style="border-radius:14px;overflow:hidden;margin-bottom:12px;background:#0F172A;position:relative;padding-top:56.25%;display:block">
+      <div id="r-no-video" style="position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:16px;text-align:center">
+        <div style="font-size:36px;margin-bottom:8px">😸</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.5);font-weight:700">Add video URLs in Settings → 📺 to get real cat videos!</div>
+      </div>
+      <iframe id="r-iframe" width="100%" height="100%" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;border:0;width:100%;height:100%"
+        allow="autoplay; encrypted-media" allowfullscreen></iframe>
+    </div>
+    <div class="vbar" style="margin-bottom:12px;height:6px;background:rgba(0,0,0,.1);border-radius:99px;overflow:hidden"><div class="vfill" id="vfill"></div></div>
+    <button class="btn-primary" onclick="closeReward()">Continue ✨</button>
+  </div>
+</div>
+
+<!-- MUSIC PLAYER — floating embed -->
+<div id="music-embed-wrap" style="display:none;position:fixed;bottom:70px;right:14px;width:260px;background:#1E1E2E;border-radius:16px;overflow:hidden;z-index:50;box-shadow:0 8px 30px rgba(0,0,0,.4)">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(255,255,255,.06)">
+    <span id="music-embed-label" style="font-size:12px;font-weight:800;color:white">🎵 Music</span>
+    <button onclick="stopMusicEmbed()" style="background:none;border:none;color:rgba(255,255,255,.6);font-size:18px;cursor:pointer;line-height:1;touch-action:manipulation">✕</button>
+  </div>
+  <iframe id="music-iframe" width="260" height="150" style="display:block;border:none"
+    allow="autoplay; encrypted-media" allowfullscreen></iframe>
+</div>
+
+<!-- EMOJI PICKER -->
+<div class="emoji-overlay" id="emoji-overlay">
+  <div class="emoji-sheet">
+    <div class="emoji-sheet-title"><span>Pick an emoji</span><span style="cursor:pointer;font-size:20px" onclick="closeEmojiPicker()">✕</span></div>
+    <input class="emoji-search" type="text" placeholder="Search..." id="emoji-search" oninput="filterEmoji()">
+    <div class="emoji-grid" id="emoji-grid"></div>
+  </div>
+</div>
+
+<div class="confetti-wrap" id="confetti"></div>
+
+<script>
+// ═══════════════════════════════════════════
+// KAWAII CHARACTER SVG ENGINE
+// ═══════════════════════════════════════════
+
+const HC = {brown:'#5C3310',blonde:'#F0C040',black:'#1A1A1A',red:'#B02020',pink:'#E0208C'};
+const HC2= {brown:'#7A4520',blonde:'#F8D860',black:'#333',   red:'#D03030',pink:'#F050A0'}; // highlight
+const EC = {blue:'#4A90D9',green:'#2EAA60',brown:'#8B5E3C',violet:'#8E44AD'};
+const OC = {uniform:'#1E3A8A',casual:'#E05030',sporty:'#16A34A',cozy:'#9333EA'};
+const OA = {uniform:'#93C5FD',casual:'#FCA5A5',sporty:'#86EFAC',cozy:'#D8B4FE'};
+const SK = '#FDDBB4', SKD = '#F0B080', SKL = '#FEE8C8';
+
+// Hair paths — all for 160x260 viewBox, kawaii big head centred at cx=80 cy=90
+const HAIR_BACK = {
+  long:   'M24 110 Q20 82 24 64 Q28 36 80 32 Q132 36 136 64 Q140 82 136 110 L134 212 Q116 247 80 252 Q44 247 26 212 Z',
+  short:  'M24 110 Q20 82 24 64 Q28 36 80 32 Q132 36 136 64 Q140 82 136 110 L134 132 Q116 147 80 150 Q44 147 26 132 Z',
+  bun:    'M30 110 Q26 84 28 66 Q32 38 80 34 Q128 38 132 66 Q134 84 130 110 L128 130 Q112 144 80 146 Q48 144 32 130 Z',
+  braids: 'M24 110 Q20 82 24 64 Q28 36 80 32 Q132 36 136 64 Q140 82 136 110 L134 137 Q116 152 80 154 Q44 152 26 137 Z',
+  curly:  'M20 112 Q14 80 22 60 Q30 32 80 30 Q130 32 138 60 Q146 80 140 112 L138 138 Q118 162 80 166 Q42 162 22 138 Z',
+};
+const HAIR_BRAIDS_EXT = (hc) => `
+  <path d="M26 137 Q18 162 20 187 Q22 202 28 197 Q34 192 32 172 Q30 154 26 137 Z" fill="${hc}"/>
+  <path d="M134 137 Q142 162 140 187 Q138 202 132 197 Q126 192 128 172 Q130 154 134 137 Z" fill="${hc}"/>
+  <ellipse cx="24" cy="190" rx="7" ry="5" fill="${hc}"/>
+  <ellipse cx="136" cy="190" rx="7" ry="5" fill="${hc}"/>`;
+const HAIR_CURLY_PUFFS = (hc,hc2) => `
+  <circle cx="22" cy="94" r="16" fill="${hc}"/>
+  <circle cx="138" cy="94" r="16" fill="${hc}"/>
+  <circle cx="30" cy="72" r="14" fill="${hc}"/>
+  <circle cx="130" cy="72" r="14" fill="${hc}"/>
+  <circle cx="55" cy="57" r="12" fill="${hc}"/>
+  <circle cx="105" cy="57" r="12" fill="${hc}"/>
+  <circle cx="80" cy="50" r="13" fill="${hc}"/>`;
+const HAIR_BUN_TOP = (hc,hc2) => `
+  <circle cx="80" cy="38" r="20" fill="${hc}"/>
+  <circle cx="80" cy="38" r="12" fill="${hc2}" opacity=".4"/>
+  <ellipse cx="72" cy="32" rx="5" ry="3" fill="${hc2}" opacity=".5"/>`;
+
+const HAIR_FRINGE = {
+  long:   (hc,hc2) => `
+    <path d="M24 110 Q26 84 28 74 Q34 50 48 46 Q56 42 62 52 Q68 58 74 52 Q80 46 86 52 Q92 58 98 52 Q104 42 112 46 Q126 50 132 74 Q134 84 136 110 Q128 98 118 94 Q106 90 96 94 Q90 96 84 92 Q80 88 76 92 Q70 96 64 94 Q54 90 42 94 Q32 98 24 110 Z" fill="${hc}"/>
+    <path d="M30 104 Q36 92 50 90 Q60 88 68 94 Q74 98 80 94 Q86 90 94 94 Q106 88 122 92 Q132 96 130 106 Q122 100 110 98 Q96 96 88 100 Q84 102 80 100 Q76 98 72 100 Q64 102 52 100 Q40 98 30 104 Z" fill="${hc2}" opacity=".5"/>`,
+  short:  (hc,hc2) => `
+    <path d="M24 110 Q28 82 34 68 Q44 46 64 42 Q72 40 76 48 Q80 52 84 48 Q88 40 96 42 Q116 46 126 68 Q132 82 136 110 Q128 96 116 92 Q104 88 94 94 Q88 96 84 92 Q80 88 76 92 Q70 96 60 92 Q46 90 34 98 Z" fill="${hc}"/>`,
+  bun:    (hc,hc2) => `
+    <path d="M30 110 Q34 84 38 70 Q46 48 64 44 Q72 42 76 50 Q80 54 84 50 Q88 42 96 44 Q114 48 122 70 Q126 84 130 110 Q122 98 110 94 Q98 90 90 94 Q86 96 82 92 Q80 90 78 92 Q74 94 70 94 Q58 90 48 96 Q38 100 30 110 Z" fill="${hc}"/>`,
+  braids: (hc,hc2) => `
+    <path d="M24 110 Q28 82 34 68 Q44 46 64 42 Q72 40 76 48 Q80 52 84 48 Q88 40 96 42 Q116 46 126 68 Q132 82 136 110 Q128 96 116 92 Q104 88 94 94 Q88 96 80 92 Q72 90 66 94 Q54 90 44 96 Z" fill="${hc}"/>`,
+  curly:  (hc,hc2) => `
+    <path d="M20 112 Q22 88 28 72 Q38 44 60 38 Q70 35 76 44 Q80 50 84 44 Q90 35 100 38 Q122 44 132 72 Q138 88 140 112 Q130 100 116 96 Q104 92 94 98 Q88 100 84 96 Q80 92 76 96 Q70 100 64 98 Q50 92 36 98 Q28 102 20 112 Z" fill="${hc}"/>`,
+};
+
+function catFaceOnJumper(oc, oa) {
+  // small cat face patch on the chest area of the jumper
+  return `
+  <g transform="translate(80,202)">
+    <ellipse cx="0" cy="0" rx="20" ry="17" fill="${oa}" opacity=".9"/>
+    <polygon points="-18,-12 -24,-24 -10,-14" fill="${oa}" opacity=".9"/>
+    <polygon points="18,-12 24,-24 10,-14" fill="${oa}" opacity=".9"/>
+    <polygon points="-17,-13 -22,-23 -11,-15" fill="#FFB7C5" opacity=".6"/>
+    <polygon points="17,-13 22,-23 11,-15" fill="#FFB7C5" opacity=".6"/>
+    <ellipse cx="-6" cy="-1" rx="4" ry="4.5" fill="white"/>
+    <ellipse cx="6" cy="-1" rx="4" ry="4.5" fill="white"/>
+    <circle cx="-6" cy="-1" r="2.8" fill="#1a1a1a"/>
+    <circle cx="6" cy="-1" r="2.8" fill="#1a1a1a"/>
+    <circle cx="-4.8" cy="-2.2" r="1" fill="white"/>
+    <circle cx="7.2" cy="-2.2" r="1" fill="white"/>
+    <ellipse cx="0" cy="4" rx="2" ry="1.3" fill="#FF9EB5"/>
+    <line x1="-20" y1="3" x2="-9" y2="5" stroke="#AAA" stroke-width="1" opacity=".6"/>
+    <line x1="-20" y1="7" x2="-9" y2="7" stroke="#AAA" stroke-width="1" opacity=".6"/>
+    <line x1="20" y1="3" x2="9" y2="5" stroke="#AAA" stroke-width="1" opacity=".6"/>
+    <line x1="20" y1="7" x2="9" y2="7" stroke="#AAA" stroke-width="1" opacity=".6"/>
+    <path d="M-4 7 Q0 11 4 7" fill="none" stroke="#C07070" stroke-width="1.2" stroke-linecap="round"/>
+  </g>`;
+}
+
+function earringsSVG(type) {
+  if (type === 'cat') return `
+    <g transform="translate(16,122)">
+      <circle cx="0" cy="0" r="7" fill="#FFD700" stroke="#FFA500" stroke-width="1.2"/>
+      <ellipse cx="0" cy="0" rx="5" ry="4.5" fill="${SKL}"/>
+      <polygon points="-4,-3 -6,-7 -2,-3.5" fill="${SKL}"/><polygon points="4,-3 6,-7 2,-3.5" fill="${SKL}"/>
+      <polygon points="-3.5,-3.2 -5.5,-6.5 -2,-3.8" fill="#FFB7C5" opacity=".7"/>
+      <polygon points="3.5,-3.2 5.5,-6.5 2,-3.8" fill="#FFB7C5" opacity=".7"/>
+      <circle cx="-1.5" cy="0.5" r="1.2" fill="#333"/><circle cx="1.5" cy="0.5" r="1.2" fill="#333"/>
+      <ellipse cx="0" cy="2.5" rx="1" ry=".7" fill="#FF9EB5"/>
+    </g>
+    <g transform="translate(144,122)">
+      <circle cx="0" cy="0" r="7" fill="#FFD700" stroke="#FFA500" stroke-width="1.2"/>
+      <ellipse cx="0" cy="0" rx="5" ry="4.5" fill="${SKL}"/>
+      <polygon points="-4,-3 -6,-7 -2,-3.5" fill="${SKL}"/><polygon points="4,-3 6,-7 2,-3.5" fill="${SKL}"/>
+      <polygon points="-3.5,-3.2 -5.5,-6.5 -2,-3.8" fill="#FFB7C5" opacity=".7"/>
+      <polygon points="3.5,-3.2 5.5,-6.5 2,-3.8" fill="#FFB7C5" opacity=".7"/>
+      <circle cx="-1.5" cy="0.5" r="1.2" fill="#333"/><circle cx="1.5" cy="0.5" r="1.2" fill="#333"/>
+      <ellipse cx="0" cy="2.5" rx="1" ry=".7" fill="#FF9EB5"/>
+    </g>`;
+  if (type === 'stars') return `
+    <text x="10" y="128" font-size="13" text-anchor="middle">⭐</text>
+    <text x="150" y="128" font-size="13" text-anchor="middle">⭐</text>`;
+  if (type === 'hearts') return `
+    <text x="10" y="128" font-size="13" text-anchor="middle">❤️</text>
+    <text x="150" y="128" font-size="13" text-anchor="middle">❤️</text>`;
+  return '';
+}
+
+function glassesSVG(type) {
+  if (type === 'sunglasses') return `
+    <rect x="42" y="107" width="26" height="14" rx="7" fill="#111" opacity=".88"/>
+    <rect x="92" y="107" width="26" height="14" rx="7" fill="#111" opacity=".88"/>
+    <line x1="68" y1="114" x2="92" y2="114" stroke="#333" stroke-width="2.5"/>
+    <line x1="36" y1="114" x2="42" y2="114" stroke="#333" stroke-width="2"/>
+    <line x1="118" y1="114" x2="124" y2="114" stroke="#333" stroke-width="2"/>`;
+  if (type === 'reading') return `
+    <rect x="42" y="105" width="26" height="16" rx="7" fill="none" stroke="#C8A060" stroke-width="2.2"/>
+    <rect x="92" y="105" width="26" height="16" rx="7" fill="none" stroke="#C8A060" stroke-width="2.2"/>
+    <line x1="68" y1="113" x2="92" y2="113" stroke="#C8A060" stroke-width="1.8"/>
+    <line x1="36" y1="113" x2="42" y2="113" stroke="#C8A060" stroke-width="1.5"/>
+    <line x1="118" y1="113" x2="124" y2="113" stroke="#C8A060" stroke-width="1.5"/>`;
+  return '';
+}
+
+function buildChar(c) {
+  const hc  = HC[c.hairColor]  || HC.brown;
+  const hc2 = HC2[c.hairColor] || HC2.brown;
+  const ec  = EC[c.eyeColor]   || EC.blue;
+  const oc  = OC[c.outfit]     || OC.uniform;
+  const oa  = OA[c.outfit]     || OA.uniform;
+
+  const hairBack  = HAIR_BACK[c.hairStyle]  || HAIR_BACK.long;
+  const hairFront = HAIR_FRINGE[c.hairStyle] || HAIR_FRINGE.long;
+  const extraHair = c.hairStyle === 'braids' ? HAIR_BRAIDS_EXT(hc) :
+                    c.hairStyle === 'curly'  ? HAIR_CURLY_PUFFS(hc,hc2) :
+                    c.hairStyle === 'bun'    ? HAIR_BUN_TOP(hc,hc2) : '';
+
+  const lower = (c.outfit === 'casual' || c.outfit === 'cozy')
+    ? `<path d="M34 222 Q28 222 26 228 L22 256 L50 256 L58 238 L66 256 L94 256 L102 238 L110 256 L138 256 L134 228 Q132 222 126 222 Z" fill="${oc}"/>`
+    : `<rect x="34" y="222" width="38" height="36" rx="6" fill="${oc}"/><rect x="88" y="222" width="38" height="36" rx="6" fill="${oc}"/>
+       <line x1="80" y1="222" x2="80" y2="258" stroke="${hc==='#1E3A8A'?'#162D70':'rgba(0,0,0,.15)'}" stroke-width="2"/>`;
+
+  const sportyStripes = c.outfit === 'sporty'
+    ? `<line x1="56" y1="168" x2="50" y2="222" stroke="${oa}" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+       <line x1="104" y1="168" x2="110" y2="222" stroke="${oa}" stroke-width="3" stroke-linecap="round" opacity=".7"/>` : '';
+
+  return `
+  <!-- hair back -->
+  <path d="${hairBack}" fill="${hc}"/>
+  ${extraHair}
+
+  <!-- neck -->
+  <rect x="66" y="148" width="28" height="22" rx="10" fill="${SK}"/>
+  <rect x="66" y="148" width="28" height="10" rx="5" fill="${SKD}" opacity=".3"/>
+
+  <!-- body -->
+  <path d="M34 168 Q24 172 20 184 L16 222 Q16 230 26 230 L134 230 Q144 230 144 222 L140 184 Q136 172 126 168 Q106 160 80 160 Q54 160 34 168 Z" fill="${oc}"/>
+  <!-- collar -->
+  <path d="M58 168 Q80 178 102 168 L98 182 Q80 190 62 182 Z" fill="${oa}" opacity=".7"/>
+  ${catFaceOnJumper(oc, oa)}
+  ${sportyStripes}
+  <!-- sleeves -->
+  <path d="M20 184 Q10 190 8 208 Q6 222 16 228 Q26 232 30 218 L34 200 Z" fill="${oc}"/>
+  <path d="M140 184 Q150 190 152 208 Q154 222 144 228 Q134 232 130 218 L126 200 Z" fill="${oc}"/>
+  <!-- hands -->
+  <ellipse cx="14" cy="228" rx="12" ry="11" fill="${SK}"/>
+  <ellipse cx="146" cy="228" rx="12" ry="11" fill="${SK}"/>
+  <path d="M6 224 Q4 230 6 234" fill="none" stroke="${SKD}" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M8 222 Q5 228 7 233" fill="none" stroke="${SKD}" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M22 222 Q25 228 23 233" fill="none" stroke="${SKD}" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M138 222 Q135 228 137 233" fill="none" stroke="${SKD}" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- lower body -->
+  ${lower}
+  <!-- shoes -->
+  <ellipse cx="44" cy="258" rx="18" ry="8" fill="#2D2D2D"/>
+  <ellipse cx="116" cy="258" rx="18" ry="8" fill="#2D2D2D"/>
+  <ellipse cx="42" cy="255" rx="13" ry="5" fill="#444"/>
+  <ellipse cx="114" cy="255" rx="13" ry="5" fill="#444"/>
+
+  <!-- EARRINGS (behind head, at ear level) -->
+  ${earringsSVG(c.earrings)}
+
+  <!-- HEAD — moved down so bottom overlaps neck -->
+  <!-- head shadow/depth -->
+  <ellipse cx="82" cy="114" rx="52" ry="50" fill="${SKD}" opacity=".3"/>
+  <!-- main head -->
+  <ellipse cx="80" cy="112" rx="52" ry="50" fill="${SK}"/>
+
+  <!-- cheek blush -->
+  <ellipse cx="36" cy="128" rx="14" ry="9" fill="#FFB7C5" opacity=".5"/>
+  <ellipse cx="124" cy="128" rx="14" ry="9" fill="#FFB7C5" opacity=".5"/>
+
+  <!-- ── EYES (big beautiful kawaii eyes) ── -->
+  <!-- left eye white -->
+  <ellipse cx="58" cy="112" rx="16" ry="18" fill="white"/>
+  <!-- left iris -->
+  <ellipse cx="58" cy="115" rx="12" ry="14" fill="${ec}"/>
+  <!-- left pupil -->
+  <ellipse cx="58" cy="117" rx="8" ry="10" fill="#0d1a3a"/>
+  <!-- left shine large -->
+  <ellipse cx="52" cy="109" rx="4.5" ry="5" fill="white"/>
+  <!-- left shine small -->
+  <circle cx="63" cy="114" r="2" fill="white"/>
+  <!-- left lower lash line -->
+  <path d="M42 126 Q58 134 74 126" fill="none" stroke="${SKD}" stroke-width="1" opacity=".5"/>
+  <!-- left upper lash -->
+  <path d="M42 100 Q50 92 66 96 Q72 94 76 97" fill="none" stroke="#1A0A00" stroke-width="3" stroke-linecap="round"/>
+  <!-- left lash tips -->
+  <line x1="42" y1="100" x2="38" y2="95" stroke="#1A0A00" stroke-width="2" stroke-linecap="round"/>
+  <line x1="46" y1="96" x2="43" y2="91" stroke="#1A0A00" stroke-width="2" stroke-linecap="round"/>
+  <line x1="66" y1="96" x2="67" y2="91" stroke="#1A0A00" stroke-width="2" stroke-linecap="round"/>
+  <line x1="72" y1="95" x2="75" y2="91" stroke="#1A0A00" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- right eye white -->
+  <ellipse cx="102" cy="112" rx="16" ry="18" fill="white"/>
+  <!-- right iris -->
+  <ellipse cx="102" cy="115" rx="12" ry="14" fill="${ec}"/>
+  <!-- right pupil -->
+  <ellipse cx="102" cy="117" rx="8" ry="10" fill="#0d1a3a"/>
+  <!-- right shine large -->
+  <ellipse cx="96" cy="109" rx="4.5" ry="5" fill="white"/>
+  <!-- right shine small -->
+  <circle cx="107" cy="114" r="2" fill="white"/>
+  <!-- right lower lash line -->
+  <path d="M86 126 Q102 134 118 126" fill="none" stroke="${SKD}" stroke-width="1" opacity=".5"/>
+  <!-- right upper lash -->
+  <path d="M84 100 Q94 92 110 96 Q116 94 118 97" fill="none" stroke="#1A0A00" stroke-width="3" stroke-linecap="round"/>
+  <line x1="84" y1="100" x2="80" y2="95" stroke="#1A0A00" stroke-width="2" stroke-linecap="round"/>
+  <line x1="88" y1="96" x2="85" y2="91" stroke="#1A0A00" stroke-width="2" stroke-linecap="round"/>
+  <line x1="110" y1="96" x2="111" y2="91" stroke="#1A0A00" stroke-width="2" stroke-linecap="round"/>
+  <line x1="116" y1="95" x2="119" y2="91" stroke="#1A0A00" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- glasses go over eyes -->
+  ${glassesSVG(c.glasses)}
+
+  <!-- nose -->
+  <ellipse cx="80" cy="130" rx="4" ry="2.5" fill="${SKD}" opacity=".8"/>
+
+  <!-- mouth -->
+  <path d="M66 140 Q80 152 94 140" fill="none" stroke="#D4706A" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M68 141 Q80 150 92 141" fill="#FFB7C5" opacity=".35"/>
+  <!-- tiny tooth hint -->
+  <rect x="76" y="140" width="8" height="5" rx="2" fill="white" opacity=".6"/>
+
+  <!-- hair front (fringe) -->
+  ${hairFront(hc, hc2)}
+  `;
+}
+
+function renderChar(id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  // Safari-safe SVG rendering via DOMParser
+  var svgStr = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 260">' + buildChar(char) + '</svg>';
+  try {
+    var parser = new DOMParser();
+    var doc = parser.parseFromString(svgStr, 'image/svg+xml');
+    var parsed = doc.documentElement;
+    // Check for parse error
+    if (parsed.querySelector('parsererror')) {
+      el.innerHTML = buildChar(char);
+      return;
+    }
+    // Copy all child nodes into our SVG element
+    while (el.firstChild) el.removeChild(el.firstChild);
+    var children = Array.prototype.slice.call(parsed.childNodes);
+    for (var i = 0; i < children.length; i++) {
+      el.appendChild(el.ownerDocument.adoptNode(children[i]));
+    }
+  } catch(e) {
+    // Fallback for very old browsers
+    el.innerHTML = buildChar(char);
+  }
+}
+
+// ═══════════════════════════════════════════
+// EMOJI LIBRARY
+// ═══════════════════════════════════════════
+const ALL_EMOJI = ['🥣','🥞','🍳','🥐','🍞','🥛','🧃','🍎','🍌','🥑','🧆','🥪','🥗','🍱','🌯','💊','💉','🩺','🩹','🧴','🧹','🪥','🦷','🚿','🛁','🪞','👕','👗','👘','🧥','👟','👠','👡','👞','🥾','🧤','🧣','🎒','👜','💼','🎽','🩱','🧢','👒','🎓','💧','🚰','🧼','🫧','☕','🍵','🥤','🧋','📚','✏️','📝','📖','🖊️','📐','🔬','🎨','🖌️','🎭','🌟','⭐','✨','🎉','🎊','🏆','🥇','🎯','🎮','🕹️','🎲','🐱','🐶','🐰','🦊','🐼','🐨','🦁','🐯','🐸','🦋','🐝','🌸','🌈','☀️','🌤️','⛅','🌙','⚡','❄️','🌺','🌻','🌹','🍀','🌿','🏠','🚌','🚗','🚀','✈️','❤️','🧡','💛','💚','💙','💜','💕','💖','🙏','👍','👋','💪','🔥'];
+
+let emojiTargetIdx = null;
+function openEmojiPicker(idx) { emojiTargetIdx=idx; document.getElementById('emoji-search').value=''; renderEmojiGrid(ALL_EMOJI); document.getElementById('emoji-overlay').classList.add('show'); }
+function closeEmojiPicker() { document.getElementById('emoji-overlay').classList.remove('show'); emojiTargetIdx=null; }
+function filterEmoji() { const q=document.getElementById('emoji-search').value; renderEmojiGrid(q?ALL_EMOJI.filter(e=>e.includes(q)):ALL_EMOJI); }
+function renderEmojiGrid(list) {
+  const g=document.getElementById('emoji-grid'); g.innerHTML='';
+  list.forEach(em=>{ const el=document.createElement('div'); el.className='emoji-opt'; el.textContent=em; el.onclick=()=>selectEmoji(em); g.appendChild(el); });
+}
+function selectEmoji(em) { if(emojiTargetIdx===null) return; tasks[emojiTargetIdx].emoji=em; renderTileEditor(); closeEmojiPicker(); }
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+const TASKS_DEF = [
+  {id:'breakfast',emoji:'🥣',label:'Breakfast',  mins:12},
+  {id:'medicine', emoji:'💊',label:'Medicine',   mins:1},
+  {id:'teeth',    emoji:'🦷',label:'Brush teeth',mins:3},
+  {id:'hair',     emoji:'💇',label:'Brush hair', mins:4},
+  {id:'dressed',  emoji:'👕',label:'Get dressed',mins:5},
+  {id:'shoes',    emoji:'👟',label:'Shoes on',   mins:2},
+  {id:'lunch',    emoji:'🥪',label:'Lunch in bag',mins:3},
+  {id:'water',    emoji:'💧',label:'Water bottle',mins:2},
+  {id:'bag',      emoji:'🎒',label:'Bag packed', mins:3},
+];
+let videoUrls  = JSON.parse(localStorage.getItem('mrVideoUrls')||'null') || [
+  'https://www.youtube.com/watch?v=pPzLfmgTHmI',  // cute cat compilation
+  'https://www.youtube.com/watch?v=W86cTIoMv2U',  // funny cats
+];
+let tasks      = JSON.parse(localStorage.getItem('mrTasks')||'null') || TASKS_DEF.map(t=>({...t}));
+let done       = new Set();
+let stars      = 0;
+let vidLen     = parseInt(localStorage.getItem('mrVidLen')||'30');
+let depTime    = localStorage.getItem('mrDep')||'08:15';
+let childName  = localStorage.getItem('mrName')||'Lily';
+let cooldownSecs = parseInt(localStorage.getItem('mrCooldown')||'60');
+let char = JSON.parse(localStorage.getItem('mrChar')||'null') || {hairColor:'brown',hairStyle:'long',eyeColor:'blue',outfit:'uniform',earrings:'cat',glasses:'none'};
+
+// ═══════════════════════════════════════════
+// WEATHER
+// ═══════════════════════════════════════════
+const WX={days:[{name:'Sat',icon:'🌥️',hi:23,rain:10},{name:'Sun',icon:'🌧️',hi:17,rain:77},{name:'Mon',icon:'🌦️',hi:17,rain:35},{name:'Tue',icon:'🌦️',hi:16,rain:35},{name:'Wed',icon:'🌦️',hi:16,rain:25}]};
+function renderWeather(){
+  const w=document.getElementById('wx-days'); w.innerHTML='';
+  WX.days.slice(0,4).forEach(d=>{ const el=document.createElement('div'); el.className='wx-day'; el.innerHTML=`<div class="wx-day-name">${d.name}</div><div class="wx-day-icon">${d.icon}</div><div class="wx-day-hi">${d.hi}°</div><div class="wx-day-rain">${d.rain}%💧</div>`; w.appendChild(el); });
+}
+
+// ═══════════════════════════════════════════
+// MUSIC — YouTube iframe embed (works on iPad Safari, no popups)
+// ═══════════════════════════════════════════
+
+const MUSIC_DEFAULTS = {
+  zen:       'https://www.youtube.com/watch?v=5qap5aO4i9A',
+  pop:       'https://www.youtube.com/watch?v=ktvTqknDobU',
+  rock:      'https://www.youtube.com/watch?v=qeMFqkcPYcg',
+  classical: 'https://www.youtube.com/watch?v=mGQLXRTl3Z0',
+};
+const GENRE_META = {
+  zen:       {label:'🧘 Zen',       emoji:'🧘'},
+  pop:       {label:'🎤 Pop',       emoji:'🎤'},
+  rock:      {label:'🎸 Rock',      emoji:'🎸'},
+  classical: {label:'🎻 Classical', emoji:'🎻'},
+};
+
+let musicUrls = JSON.parse(localStorage.getItem('mrMusicUrls')||'null') || {...MUSIC_DEFAULTS};
+let currentGenre = null;
+let musicCoolingDown = false;
+let cooldownInterval = null;
+let cooldownRemain = 0;
+
+// Convert any YouTube URL to an embeddable src
+function toYouTubeEmbedSrc(url) {
+  if (!url) return null;
+  // Already an embed URL
+  if (url.includes('youtube.com/embed')) return url + (url.includes('?') ? '&' : '?') + 'autoplay=1';
+  // Playlist
+  const pl = url.match(/[?&]list=([A-Za-z0-9_-]+)/);
+  const v  = url.match(/(?:[?&]v=|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  if (pl && v) return `https://www.youtube.com/embed/${v[1]}?list=${pl[1]}&autoplay=1&rel=0`;
+  if (pl)      return `https://www.youtube.com/embed/videoseries?list=${pl[1]}&autoplay=1&rel=0`;
+  if (v)       return `https://www.youtube.com/embed/${v[1]}?autoplay=1&rel=0`;
+  // Non-YouTube (Apple Music, Spotify, etc.) — can't embed, open link instead
+  return null;
+}
+
+function playMusicEmbed(genre) {
+  const url = musicUrls[genre] || MUSIC_DEFAULTS[genre];
+  const embedSrc = toYouTubeEmbedSrc(url);
+  const wrap  = document.getElementById('music-embed-wrap');
+  const iframe = document.getElementById('music-iframe');
+  const lbl   = document.getElementById('music-embed-label');
+
+  if (embedSrc) {
+    iframe.src = embedSrc;
+    lbl.textContent = GENRE_META[genre].emoji + ' ' + GENRE_META[genre].label;
+    wrap.style.display = 'block';
+  } else if (url) {
+    // Non-embeddable link — show a tap-to-open toast
+    wrap.style.display = 'none';
+    showMusicToast(genre, url);
+  }
+}
+
+function stopMusicEmbed() {
+  const iframe = document.getElementById('music-iframe');
+  const wrap   = document.getElementById('music-embed-wrap');
+  iframe.src = '';
+  wrap.style.display = 'none';
+}
+
+function showMusicToast(genre, url) {
+  let toast = document.getElementById('music-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'music-toast';
+    toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:white;padding:12px 18px;border-radius:14px;font-size:13px;font-weight:800;z-index:500;max-width:290px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.3)';
+    document.body.appendChild(toast);
+  }
+  const g = GENRE_META[genre];
+  toast.innerHTML = `${g.emoji} <a href="${url}" target="_blank" style="color:#93C5FD;text-decoration:none">Open ${g.label} ↗</a><br><span style="font-size:10px;opacity:.6;font-weight:600">(Non-YouTube links open in browser)</span>`;
+  toast.style.display = 'block';
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => toast.style.display = 'none', 7000);
+}
+
+function startCooldown() {
+  musicCoolingDown = true; cooldownRemain = cooldownSecs;
+  const wrap=document.getElementById('cd-bar-wrap'), fill=document.getElementById('cd-bar-fill');
+  wrap.style.display='block'; fill.style.width='100%';
+  document.querySelectorAll('.genre-btn').forEach(b=>b.classList.add('cooling'));
+  clearInterval(cooldownInterval);
+  cooldownInterval = setInterval(()=>{
+    cooldownRemain--;
+    fill.style.width = (cooldownRemain / cooldownSecs * 100) + '%';
+    if (cooldownRemain <= 0) {
+      clearInterval(cooldownInterval); musicCoolingDown = false; wrap.style.display = 'none';
+      document.querySelectorAll('.genre-btn').forEach(b=>b.classList.remove('cooling'));
+      updateMusicUI();
+    }
+  }, 1000);
+}
+
+function toggleMusic(genre) {
+  if (musicCoolingDown) return;
+  if (currentGenre === genre) {
+    stopMusicEmbed();
+    currentGenre = null;
+    document.getElementById('music-label').innerHTML = '🎵';
+    updateMusicUI();
+    startCooldown();
+    return;
+  }
+  stopMusicEmbed();
+  currentGenre = genre;
+  playMusicEmbed(genre);
+  document.getElementById('music-label').innerHTML = '<span class="music-note">🎵</span>';
+  updateMusicUI();
+  startCooldown();
+}
+
+function updateMusicUI() {
+  Object.keys(GENRE_META).forEach(g => {
+    const btn = document.getElementById('gbtn-'+g); if (!btn) return;
+    btn.classList.toggle('playing', g === currentGenre);
+    btn.textContent = GENRE_META[g].label + (g === currentGenre ? ' ◼' : '');
+  });
+}
+
+// ═══════════════════════════════════════════
+// SCREENS
+// ═══════════════════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id==='screen-customize') updateCustUI();
+  if(id==='screen-parent'){updateParentUI();renderTileEditor();}
+  if(id==='screen-main') renderChar('char-main');
+}
+
+// ═══════════════════════════════════════════
+// TILES
+// ═══════════════════════════════════════════
+function makeEl(tag, cls, text) {
+  var e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+function renderTiles(){
+  var g = document.getElementById('tiles-grid');
+  g.innerHTML = '';
+  tasks.forEach(function(task) {
+    var t = document.createElement('div');
+    t.className = 'tile';
+    t.id = 'tile-' + task.id;
+    var chk = makeEl('div','tile-check'); chk.textContent = '✓';
+    var em  = makeEl('div','tile-emoji'); em.textContent  = task.emoji;
+    var lbl = makeEl('div','tile-label'); lbl.textContent = task.label;
+    var est = makeEl('div','tile-est');   est.textContent = '~' + task.mins + 'm';
+    t.appendChild(chk); t.appendChild(em); t.appendChild(lbl); t.appendChild(est);
+    (function(id){ t.onclick = function(){ tileClick(id); }; })(task.id);
+    g.appendChild(t);
+  });
+  updateActiveTask();
+}
+function tileClick(id){if(done.has(id))return;done.add(id);stars+=10;var _te=document.getElementById('tile-'+id); if(_te) _te.classList.add('done');updateProgress();moveChar();spawnConfetti();setTimeout(()=>showReward(tasks.find(t=>t.id===id)),400)}
+function updateActiveTask(){tasks.forEach(function(t){var _ta=document.getElementById('tile-'+t.id); if(_ta) _ta.classList.remove('active-task');});const next=tasks.find(t=>!done.has(t.id));if(next){var _tn=document.getElementById('tile-'+next.id); if(_tn) _tn.classList.add('active-task'); showBubble(next.label)}else{document.getElementById('task-bubble').classList.remove('show')}}
+function showBubble(label){const b=document.getElementById('task-bubble');b.textContent='Next: '+label+' 👆';b.classList.add('show')}
+
+// ═══════════════════════════════════════════
+// TILE EDITOR
+// ═══════════════════════════════════════════
+function renderTileEditor(){
+  const list=document.getElementById('tile-editor-list');list.innerHTML='';
+  tasks.forEach((task,idx)=>{
+    const row=document.createElement('div');row.className='tile-editor-row';row.dataset.idx=idx;
+    row.innerHTML=`<span class="te-drag">⠿</span>
+      <button class="te-emoji-btn" onclick="openEmojiPicker(${idx})">${task.emoji}</button>
+      <input class="te-name-input" type="text" value="${task.label}" oninput="tasks[${idx}].label=this.value">
+      <div class="te-mins">
+        <button class="te-mins-btn" onclick="adjTaskMins(${idx},-1)">−</button>
+        <span class="te-mins-val" id="tmv-${idx}">${task.mins}</span>
+        <button class="te-mins-btn" onclick="adjTaskMins(${idx},1)">+</button>
+      </div>
+      <span class="te-del" onclick="deleteTask(${idx})">✕</span>`;
+    list.appendChild(row);
+  });
+  initDragSort();
+}
+function adjTaskMins(idx,d){tasks[idx].mins=Math.max(1,tasks[idx].mins+d);const el=document.getElementById('tmv-'+idx);if(el)el.textContent=tasks[idx].mins}
+function deleteTask(idx){if(tasks.length<=1){alert('Need at least one task!');return}tasks.splice(idx,1);renderTileEditor()}
+function addTask(){tasks.push({id:'task_'+Date.now(),emoji:'⭐',label:'New task',mins:5});renderTileEditor();setTimeout(()=>{var _tl=document.getElementById('tile-editor-list'); if(_tl && _tl.lastChild && _tl.lastChild.scrollIntoView) _tl.lastChild.scrollIntoView({behavior:'smooth'})},100)}
+function initDragSort(){
+  const list=document.getElementById('tile-editor-list');
+  list.querySelectorAll('.tile-editor-row').forEach(row=>{
+    row.setAttribute('draggable','true');
+    row.addEventListener('dragstart',()=>{setTimeout(()=>row.classList.add('dragging'),0)});
+    row.addEventListener('dragend',()=>{row.classList.remove('dragging');applyOrder()});
+    row.addEventListener('dragover',e=>{e.preventDefault();if(!row.classList.contains('dragging'))list.insertBefore(document.querySelector('.dragging'),row)});
+  });
+}
+function applyOrder(){const rows=[...document.getElementById('tile-editor-list').querySelectorAll('.tile-editor-row')];const newTasks=rows.map(r=>tasks[parseInt(r.dataset.idx)]).filter(Boolean);tasks=newTasks;renderTileEditor()}
+
+// ═══════════════════════════════════════════
+// CHARACTER MOVEMENT
+// ═══════════════════════════════════════════
+function moveChar(){
+  const sw=document.getElementById('stage').offsetWidth;
+  const left=Math.round(6+(done.size/tasks.length)*(sw-90)*0.85);
+  document.getElementById('char-wrap').style.left=left+'px';
+  renderChar('char-main');updateActiveTask();
+}
+
+// ═══════════════════════════════════════════
+// CLOCK
+// ═══════════════════════════════════════════
+function parseDep(){const[h,m]=(depTime||'08:15').split(':').map(Number);const d=new Date();d.setHours(h,m,0,0);return d}
+function remainMins(){return tasks.filter(t=>!done.has(t.id)).reduce((s,t)=>s+t.mins,0)}
+function tickClock(){
+  const now=new Date(),dep=parseDep(),diff=Math.max(0,Math.floor((dep-now)/1000));
+  const mm=Math.floor(diff/60),ss=diff%60;
+  document.getElementById('cd-time').textContent=String(mm).padStart(2,'0')+':'+String(ss).padStart(2,'0');
+  const pill=document.getElementById('cd-status'),rem=remainMins();
+  if(diff<=0){pill.className='status-pill s-behind';pill.textContent='Time to go! 🚌'}
+  else if(mm>rem+5){pill.className='status-pill s-ahead';pill.textContent='Ahead of time ⭐'}
+  else if(mm>=rem){pill.className='status-pill s-ontime';pill.textContent='On track ✨'}
+  else{pill.className='status-pill s-behind';pill.textContent='Hurry up! 🏃'}
+}
+function updateProgress(){
+  const n=done.size,tot=tasks.length,pct=Math.round(n/tot*100);
+  document.getElementById('prog-mini').style.width=pct+'%';
+  document.getElementById('star-display').textContent='⭐ '+stars;
+  document.getElementById('total-stars').textContent=stars+' stars';
+  document.getElementById('stat-done').textContent=n;
+  document.getElementById('stat-stars').textContent=stars+'⭐';
+  if(n===tot){document.getElementById('all-done').classList.add('show');document.getElementById('btn-cust').classList.add('unlocked')}
+}
+
+// ═══════════════════════════════════════════
+// REWARD — YouTube iframe embed
+// ═══════════════════════════════════════════
+let vidTimer = null;
+
+function toYouTubeEmbedSrcVideo(url) {
+  if (!url) return null;
+  if (url.includes('youtube.com/embed')) return url + (url.includes('?') ? '&' : '?') + 'autoplay=1';
+  const pl = url.match(/[?&]list=([A-Za-z0-9_-]+)/);
+  const v  = url.match(/(?:[?&]v=|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  if (pl && v) return `https://www.youtube.com/embed/${v[1]}?list=${pl[1]}&autoplay=1&rel=0`;
+  if (pl)      return `https://www.youtube.com/embed/videoseries?list=${pl[1]}&autoplay=1&rel=0`;
+  if (v)       return `https://www.youtube.com/embed/${v[1]}?autoplay=1&rel=0`;
+  return null;
+}
+
+function showReward(task) {
+  const cats = ['😸','😻','🙀','🐈','😹','🐱'];
+  const msgs = ['Brilliant!','Nailed it!','Superstar!','Amazing!','Way to go!','Purr-fect!'];
+  document.getElementById('r-emoji').textContent = cats[Math.floor(Math.random()*cats.length)];
+  document.getElementById('r-title').textContent = msgs[Math.floor(Math.random()*msgs.length)];
+  document.getElementById('r-sub').textContent   = (task && task.label ? task.label : 'Task') + ' done! 🎬';
+
+  const validUrls = videoUrls.filter(Boolean);
+  const iframe    = document.getElementById('r-iframe');
+  const noVideo   = document.getElementById('r-no-video');
+
+  if (validUrls.length) {
+    const picked   = validUrls[Math.floor(Math.random() * validUrls.length)];
+    const embedSrc = toYouTubeEmbedSrcVideo(picked);
+    if (embedSrc) {
+      iframe.src = embedSrc;
+      iframe.style.display = 'block';
+      noVideo.style.display = 'none';
+    } else {
+      // Non-embeddable URL — show placeholder + link
+      iframe.style.display = 'none';
+      noVideo.style.display = 'flex';
+      noVideo.innerHTML = `<div style="padding:16px;text-align:center"><div style="font-size:32px;margin-bottom:8px">🎬</div><a href="${picked}" target="_blank" style="color:#93C5FD;font-size:12px;font-weight:800;text-decoration:none">Tap to open your video ↗</a></div>`;
+    }
+  } else {
+    iframe.src = '';
+    iframe.style.display = 'none';
+    noVideo.style.display = 'flex';
+    noVideo.innerHTML = '<div style="padding:16px;text-align:center"><div style="font-size:32px;margin-bottom:6px">😸</div><div style="font-size:11px;color:rgba(255,255,255,.5);font-weight:700">Add YouTube video URLs in<br>Settings → 📺 Cat videos</div></div>';
+  }
+
+  // progress bar timer
+  document.getElementById('vfill').style.width = '0%';
+  let el = 0; clearInterval(vidTimer);
+  vidTimer = setInterval(() => {
+    el++;
+    document.getElementById('vfill').style.width = (el / vidLen * 100) + '%';
+    if (el >= vidLen) { clearInterval(vidTimer); }
+  }, 1000);
+
+  document.getElementById('reward-overlay').classList.add('show');
+}
+
+function closeReward() {
+  clearInterval(vidTimer);
+  document.getElementById('r-iframe').src = '';
+  document.getElementById('reward-overlay').classList.remove('show');
+}
+
+// ═══════════════════════════════════════════
+// CONFETTI
+// ═══════════════════════════════════════════
+function spawnConfetti(){
+  const wrap=document.getElementById('confetti'),cols=['#FF7043','#7C3AED','#22C55E','#F59E0B','#38BDF8','#EC4899','#84CC16'];
+  for(let i=0;i<42;i++){const el=document.createElement('div');el.className='cp';el.style.cssText=`left:${Math.random()*100}%;background:${cols[i%cols.length]};width:${6+Math.random()*8}px;height:${6+Math.random()*8}px;border-radius:${Math.random()>.5?'50%':'2px'};animation-delay:${Math.random()*.5}s;animation-duration:${1.2+Math.random()}s`;wrap.appendChild(el);setTimeout(()=>el.remove(),2600)}
+}
+
+// ═══════════════════════════════════════════
+// CUSTOMISE
+// ═══════════════════════════════════════════
+function updateCustUI(){
+  document.querySelectorAll('[data-key]').forEach(el=>el.classList.toggle('sel',char[el.dataset.key]===el.dataset.val));
+  renderChar('char-preview');
+}
+function setPref(el){
+  char[el.dataset.key]=el.dataset.val;
+  el.closest('.opt-row').querySelectorAll('[data-key="'+el.dataset.key+'"]').forEach(e=>e.classList.remove('sel'));
+  el.classList.add('sel');
+  localStorage.setItem('mrChar',JSON.stringify(char));
+  renderChar('char-preview');
+}
+
+// ═══════════════════════════════════════════
+// PARENT
+// ═══════════════════════════════════════════
+function updateParentUI(){
+  document.getElementById('dep-time-input').value=depTime;
+  document.getElementById('child-name-input').value=childName;
+  document.getElementById('vid-length-sel').value=vidLen;
+  document.getElementById('cooldown-sel').value=cooldownSecs;
+  // Music URLs
+  ['zen','pop','rock','classical'].forEach(g=>{
+    const el=document.getElementById('murl-'+g);
+    if(el) el.value = musicUrls[g]||'';
+  });
+  // Video URLs
+  renderVideoUrlList();
+}
+
+function renderVideoUrlList(){
+  const list=document.getElementById('vid-url-list'); if(!list) return;
+  list.innerHTML='';
+  videoUrls.forEach((url,idx)=>{
+    const row=document.createElement('div'); row.className='vid-url-row';
+    row.innerHTML=`<input class="vid-url-input" type="url" placeholder="https://youtube.com/watch?v=…" value="${url.replace(/"/g,'&quot;')}" oninput="videoUrls[${idx}]=this.value">
+    <span class="vid-url-del" onclick="deleteVideoUrl(${idx})">✕</span>`;
+    list.appendChild(row);
+  });
+}
+function addVideoUrl(){
+  videoUrls.push('');
+  renderVideoUrlList();
+  setTimeout(function(){
+    var _vl=document.getElementById('vid-url-list');
+    if(_vl && _vl.lastChild){
+      var _vi=_vl.lastChild.querySelector('input');
+      if(_vi) _vi.focus();
+    }
+  },100);
+}
+function deleteVideoUrl(idx){ videoUrls.splice(idx,1); renderVideoUrlList(); }
+function saveAll(){
+  depTime=document.getElementById('dep-time-input').value;
+  childName=document.getElementById('child-name-input').value;
+  vidLen=parseInt(document.getElementById('vid-length-sel').value);
+  cooldownSecs=parseInt(document.getElementById('cooldown-sel').value);
+  document.querySelectorAll('#tile-editor-list .tile-editor-row').forEach((row,i)=>{const inp=row.querySelector('.te-name-input');if(inp&&tasks[i])tasks[i].label=inp.value});
+  // Save music URLs
+  ['zen','pop','rock','classical'].forEach(g=>{
+    const el=document.getElementById('murl-'+g);
+    if(el && el.value.trim()) musicUrls[g]=el.value.trim();
+  });
+  // Save video URLs (filter blanks)
+  const vidInputs=[...document.querySelectorAll('.vid-url-input')];
+  videoUrls = vidInputs.map(i=>i.value.trim()).filter(Boolean);
+  localStorage.setItem('mrDep',depTime);localStorage.setItem('mrName',childName);
+  localStorage.setItem('mrVidLen',vidLen);localStorage.setItem('mrCooldown',cooldownSecs);
+  localStorage.setItem('mrTasks',JSON.stringify(tasks));
+  localStorage.setItem('mrMusicUrls',JSON.stringify(musicUrls));
+  localStorage.setItem('mrVideoUrls',JSON.stringify(videoUrls));
+  const btn=document.querySelector('.save-btn');btn.textContent='✅ Saved!';setTimeout(()=>btn.textContent='✅ Save settings',1500);
+  renderTiles();
+}
+
+// ═══════════════════════════════════════════
+// INIT — wrapped in DOMContentLoaded for iPad reliability
+// ═══════════════════════════════════════════
+function initApp() {
+  renderWeather();
+  renderTiles();
+  renderChar('char-main');
+  renderEmojiGrid(ALL_EMOJI);
+  tickClock();
+  setInterval(tickClock, 1000);
+  updateProgress();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
+</script>
+</body>
+</html>
